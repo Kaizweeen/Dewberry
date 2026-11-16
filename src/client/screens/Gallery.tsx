@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { DayView, GalleryPage } from '../../shared/types';
 import { ApiFailure, api } from '../api';
 import { DrawingArt } from '../draw/DrawingArt';
-import { Hearts, Icon, Stage } from '../ui';
+import { Hearts, Icon } from '../ui';
 
 const GENERIC = 'Something went wrong. Try again.';
 const messageOf = (err: unknown): string =>
@@ -10,7 +10,7 @@ const messageOf = (err: unknown): string =>
 
 export function Gallery(props: {
   view: DayView;
-  onDone: () => void;
+  onDone: (heartsLeft: number) => void;
   onClosed: () => void;
 }) {
   const [entries, setEntries] = useState<GalleryPage['entries']>([]);
@@ -77,15 +77,16 @@ export function Gallery(props: {
   }
   if (state === 'none') text = 'No other drawings yet. Check back later.';
   if (state === 'seen-all') text = 'You have seen every drawing.';
+  if (loading && entries.length === 0) text = 'Loading drawings';
   if (note !== null) text = note;
 
   return (
-    <Stage>
+    <>
       <button
         className="artbtn"
         style={{ left: 12, top: 12, width: 44, height: 44 }}
         aria-label="Home"
-        onClick={props.onDone}
+        onClick={() => props.onDone(heartsLeft)}
       >
         <img src="/art/home-btn.png" alt="" />
       </button>
@@ -112,11 +113,7 @@ export function Gallery(props: {
               width: 48,
               height: 48,
             }}
-            aria-label={
-              done
-                ? `Drawing ${i + 1}, hearted`
-                : `Drawing ${i + 1}. Give a heart`
-            }
+            aria-label={`Drawing ${i + 1}`}
             aria-pressed={done}
             onClick={() => void give(item.id)}
           >
@@ -156,11 +153,11 @@ export function Gallery(props: {
         <button
           className="px in btn primary t32"
           style={{ height: 60 }}
-          onClick={props.onDone}
+          onClick={() => props.onDone(heartsLeft)}
         >
           Done
         </button>
       </div>
-    </Stage>
+    </>
   );
 }

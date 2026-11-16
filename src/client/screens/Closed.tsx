@@ -5,7 +5,7 @@ import type { DayView, Results } from '../../shared/types';
 import { api, ApiFailure } from '../api';
 import { ordinal } from '../ordinal';
 import { drawingsText, postUrl } from '../text';
-import { Icon, Stage, vars } from '../ui';
+import { Icon, vars } from '../ui';
 
 type Place = Results['top'][number];
 
@@ -24,6 +24,7 @@ function Podium(props: { top: Place[] }) {
         marginTop: 14,
         gap: 8,
         display: 'grid',
+        alignItems: 'end',
         gridTemplateColumns: '1fr 1.25fr 1fr',
       }}
     >
@@ -66,9 +67,10 @@ export function Closed(props: { view: DayView }) {
   const [failure, setFailure] = useState<string | null>(null);
   const asked = useRef(false);
 
-  useEffect(() => {
+  const load = () => {
     if (asked.current) return;
     asked.current = true;
+    setFailure(null);
     api
       .results()
       .then(setResults)
@@ -78,8 +80,13 @@ export function Closed(props: { view: DayView }) {
             ? err.message
             : 'Something went wrong. Try again.'
         )
-      );
-  }, []);
+      )
+      .finally(() => {
+        asked.current = false;
+      });
+  };
+
+  useEffect(load, []);
 
   const count = results?.count ?? view.entryCount;
   const today = view.todayPostId;
@@ -93,7 +100,7 @@ export function Closed(props: { view: DayView }) {
   }
 
   return (
-    <Stage>
+    <>
       <div className="px tab t16" style={{ right: 12, top: 12 }}>
         <span>Day {view.day}</span>
       </div>
@@ -111,6 +118,15 @@ export function Closed(props: { view: DayView }) {
           )}
           <div className="grow"></div>
           <p className="t16">{placing}</p>
+          {failure !== null && (
+            <button
+              className="px in btn t24"
+              style={{ height: 56, marginTop: 10 }}
+              onClick={load}
+            >
+              Try again
+            </button>
+          )}
           {today !== null && today !== view.postId && (
             <button
               className="px in btn primary t24"
@@ -132,6 +148,6 @@ export function Closed(props: { view: DayView }) {
         alt="Your pet, Star"
         style={{ left: 147, top: 498, width: 81, height: 81 }}
       />
-    </Stage>
+    </>
   );
 }

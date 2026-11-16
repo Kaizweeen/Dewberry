@@ -10,8 +10,13 @@ export const vars = (style: CssVars): CssVars => style;
 const STAGE_W = 375;
 const STAGE_H = 596;
 
-const fitScale = () =>
-  Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H);
+const fitScale = () => {
+  const scale = Math.min(
+    window.innerWidth / STAGE_W,
+    window.innerHeight / STAGE_H
+  );
+  return scale > 0 ? scale : 1;
+};
 
 /** The sky fills the viewport. The game sits in a 375 x 596 box, scaled to fit and centered. */
 export function Stage(props: {

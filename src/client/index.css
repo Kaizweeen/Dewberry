@@ -308,6 +308,8 @@ body {
   background: var(--paper);
   cursor: crosshair;
   touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 .paper {
   background: var(--paper);
@@ -482,7 +484,7 @@ body {
 }
 .podium {
   display: flex;
-  align-items: flex-end;
+  align-items: end;
   justify-content: center;
   gap: calc(5 * var(--u));
 }

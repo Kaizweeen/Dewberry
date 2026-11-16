@@ -2,13 +2,13 @@ import { navigateTo } from '@devvit/web/client';
 import { DrawingArt } from '../draw/DrawingArt';
 import type { DayView } from '../../shared/types';
 import { postUrl, streakText } from '../text';
-import { Icon, PetScene, Stage, vars } from '../ui';
+import { Icon, PetScene, vars } from '../ui';
 
 export function Result(props: { view: DayView; onGiveHearts: () => void }) {
   const { view } = props;
   const left = view.heartsLeft;
   return (
-    <Stage horizon="high">
+    <>
       <PetScene />
       <div className="px tab t16" style={{ right: 12, top: 12 }}>
         <span>Day {view.day}</span>
@@ -32,7 +32,9 @@ export function Result(props: { view: DayView; onGiveHearts: () => void }) {
               style={vars({ '--pu': '6px', margin: '6px 0 0 6px' })}
             >
               <span className="art paper" style={{ width: 104, height: 104 }}>
-                <DrawingArt entry={view.myEntry ?? '[]'} label="Your drawing" />
+                {view.myEntry !== null && (
+                  <DrawingArt entry={view.myEntry} label="Your drawing" />
+                )}
               </span>
             </div>
             <div className="t16" style={{ display: 'grid', gap: 8 }}>
@@ -73,6 +75,6 @@ export function Result(props: { view: DayView; onGiveHearts: () => void }) {
           </div>
         </div>
       </div>
-    </Stage>
+    </>
   );
 }

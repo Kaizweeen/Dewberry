@@ -1,11 +1,11 @@
 import type { DayView } from '../../shared/types';
 import { drawingsText, streakText } from '../text';
-import { PetScene, Stage, vars } from '../ui';
+import { PetScene, vars } from '../ui';
 
 export function Start(props: { view: DayView; onPlay: () => void }) {
   const { view } = props;
   return (
-    <Stage horizon="high">
+    <>
       <PetScene />
       <div className="px tab t16" style={{ right: 12, top: 12 }}>
         <span>Day {view.day}</span>
@@ -45,6 +45,6 @@ export function Start(props: { view: DayView; onPlay: () => void }) {
           </p>
         </div>
       </div>
-    </Stage>
+    </>
   );
 }

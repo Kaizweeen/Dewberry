@@ -16,12 +16,21 @@ const toFailure = (err: unknown): Failure =>
     ? { status: err.status, message: err.message }
     : { status: 0, message: 'Something went wrong. Try again.' };
 
-function Plate(props: { children: string; retry?: () => void }) {
+function Plate(props: {
+  children: string;
+  retry?: () => void;
+  status?: boolean;
+}) {
   return (
     <Stage>
       <div className="px" style={{ left: 12, top: 216, width: 351 }}>
         <div style={{ display: 'grid', gap: 12, padding: 12 }}>
-          <p className="t24 display">{props.children}</p>
+          <p
+            className="t24 display"
+            {...(props.status === true ? { role: 'status' } : {})}
+          >
+            {props.children}
+          </p>
           {props.retry !== undefined && (
             <button
               className="px in btn primary t24"
@@ -42,6 +51,7 @@ export function App() {
   const [failure, setFailure] = useState<Failure | null>(null);
   const [screen, setScreen] = useState<Screen>('start');
   const loadingRef = useRef(false);
+  const refreshes = useRef(0);
 
   const load = () => {
     if (loadingRef.current) return;
@@ -64,10 +74,14 @@ export function App() {
   useEffect(load, []);
 
   // Keeps hearts and streak current without changing the screen.
+  // Only the newest refresh is applied. A failure changes nothing.
   const refresh = () => {
+    const mine = ++refreshes.current;
     api
       .day()
-      .then(setView)
+      .then((v) => {
+        if (mine === refreshes.current) setView(v);
+      })
       .catch(() => {
         // The numbers stay as they were. The next refresh tries again.
       });
@@ -90,37 +104,58 @@ export function App() {
     const final = failure.status === 401 || failure.status === 404;
     return <Plate {...(final ? {} : { retry: load })}>{failure.message}</Plate>;
   }
-  if (view === null) return <Plate>Loading</Plate>;
+  if (view === null) return <Plate status>Loading</Plate>;
 
-  switch (screen) {
-    case 'start':
-      return <Start view={view} onPlay={() => setScreen('draw')} />;
-    case 'draw':
-      return (
-        <Draw
-          view={view}
-          onHome={() => setScreen('start')}
-          onClosed={showClosed}
-          onSubmitted={() => {
-            setScreen('gallery');
-            refresh();
-          }}
-        />
-      );
-    case 'gallery':
-      return (
-        <Gallery
-          view={view}
-          onClosed={showClosed}
-          onDone={() => {
-            setScreen('result');
-            refresh();
-          }}
-        />
-      );
-    case 'result':
-      return <Result view={view} onGiveHearts={() => setScreen('gallery')} />;
-    case 'closed':
-      return <Closed view={view} />;
+  // Result needs a drawing to show. Without one the player starts at Start.
+  const current =
+    screen === 'result' && view.myEntry === null ? 'start' : screen;
+  return (
+    <Stage
+      horizon={current === 'start' || current === 'result' ? 'high' : 'low'}
+    >
+      {screenFor(current)}
+    </Stage>
+  );
+
+  function screenFor(shown: Screen) {
+    if (view === null) return null;
+    switch (shown) {
+      case 'start':
+        return <Start view={view} onPlay={() => setScreen('draw')} />;
+      case 'draw':
+        return (
+          <Draw
+            view={view}
+            onHome={() => setScreen('start')}
+            onClosed={showClosed}
+            onSubmitted={(result) => {
+              setView({
+                ...view,
+                myEntry: result.entry,
+                streak: result.streak,
+                entryCount: view.entryCount + 1,
+              });
+              setScreen('gallery');
+              refresh();
+            }}
+          />
+        );
+      case 'gallery':
+        return (
+          <Gallery
+            view={view}
+            onClosed={showClosed}
+            onDone={(heartsLeft) => {
+              setView({ ...view, heartsLeft });
+              setScreen('result');
+              refresh();
+            }}
+          />
+        );
+      case 'result':
+        return <Result view={view} onGiveHearts={() => setScreen('gallery')} />;
+      case 'closed':
+        return <Closed view={view} />;
+    }
   }
 }

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { PointerEvent } from 'react';
 import {
-  DOT_INK,
   MIN_INK,
+  MIN_STEP,
   SIZE,
   inkUsed,
   toEntryString,
@@ -21,15 +21,17 @@ import {
   usedColors,
 } from '../draw/drawState';
 import type { DrawAction, DrawState } from '../draw/drawState';
-import { Icon, Stage, vars } from '../ui';
+import { Icon, vars } from '../ui';
 
 const NOTICE_MS = 4000;
 const CONFIRM_MS = 4000;
 const PULSE_GAP_MS = 500;
+const NO_LINE = 'No line left. Erase to get some back.';
+const FAILED = 'That did not work. Try again.';
 
 export function Draw(props: {
   view: DayView;
-  onSubmitted: () => void;
+  onSubmitted: (result: { entry: string; streak: number }) => void;
   onClosed: () => void;
   onHome: () => void;
 }) {
@@ -51,22 +53,33 @@ export function Draw(props: {
   });
 
   const { strokes } = state;
+  // Saved when a stroke ends, on undo and on erase, not on every pointer move.
+  const { active } = state;
   useEffect(() => {
+    if (active) return;
     try {
       localStorage.setItem(draftKey, toEntryString(strokes));
     } catch {
       // A draft that cannot be saved is lost on reload, nothing more.
     }
-  }, [draftKey, strokes]);
+  }, [draftKey, strokes, active]);
 
   const left = remaining(state, view.budget);
   const percent = Math.max(0, Math.round((left / view.budget) * 100));
   const fill = Math.min(100, Math.max(0, (left / view.budget) * 100));
 
-  // Pulse the meter when a line is refused.
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (notice === null) return;
+    const t = setTimeout(() => setNotice(null), NOTICE_MS);
+    return () => clearTimeout(t);
+  }, [notice]);
+
+  // Pulse the meter, and say so in words, when a line is refused for lack of line.
   const [pulse, setPulse] = useState(0);
   const lastPulse = useRef(0);
   const refuse = () => {
+    setNotice(NO_LINE);
     const now = Date.now();
     if (now - lastPulse.current < PULSE_GAP_MS) return;
     lastPulse.current = now;
@@ -80,29 +93,47 @@ export function Draw(props: {
       y: ((e.clientY - r.top) / r.height) * SIZE,
     };
   };
+  // Only the first finger, or the main mouse button, draws.
+  const pointer = useRef<number | null>(null);
   const onDown = (e: PointerEvent<SVGSVGElement>) => {
+    if (!e.isPrimary || e.button !== 0) return;
+    const action: DrawAction = { type: 'start', ...paperPoint(e) };
+    if (reducer(state, action) === state) {
+      if (state.tool === 'pen' && !state.active) refuse();
+      return;
+    }
+    pointer.current = e.pointerId;
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {
       // Capture is a convenience; drawing still works without it.
     }
-    const action: DrawAction = { type: 'start', ...paperPoint(e) };
-    if (state.tool === 'pen' && reducer(state, action) === state) refuse();
     dispatch(action);
   };
   const onMove = (e: PointerEvent<SVGSVGElement>) => {
-    if (!state.active) return;
+    if (pointer.current !== e.pointerId || !state.active) return;
     const action: DrawAction = { type: 'move', ...paperPoint(e) };
+    const last = state.strokes[state.strokes.length - 1];
+    const n = last?.p.length ?? 0;
+    const dist = Math.hypot(
+      action.x - (last?.p[n - 2] ?? 0),
+      action.y - (last?.p[n - 1] ?? 0)
+    );
     if (
       state.tool === 'pen' &&
-      left < DOT_INK &&
+      dist >= MIN_STEP &&
+      left < dist &&
       reducer(state, action) === state
     ) {
       refuse();
     }
     dispatch(action);
   };
-  const onEnd = () => dispatch({ type: 'end' });
+  const onEnd = (e: PointerEvent<SVGSVGElement>) => {
+    if (pointer.current !== e.pointerId) return;
+    pointer.current = null;
+    dispatch({ type: 'end' });
+  };
 
   // The first Submit tap arms the button for a few seconds. Drawing more disarms it.
   const [armedFor, setArmedFor] = useState<Drawing | null>(null);
@@ -114,20 +145,16 @@ export function Draw(props: {
   }, [armedFor]);
 
   const [sending, setSending] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
-  useEffect(() => {
-    if (notice === null) return;
-    const t = setTimeout(() => setNotice(null), NOTICE_MS);
-    return () => clearTimeout(t);
-  }, [notice]);
+  const sendingRef = useRef(false);
 
   const submit = async () => {
-    if (sending) return;
+    if (sendingRef.current) return;
     if (!armed) {
       setArmedFor(strokes);
       return;
     }
     setArmedFor(null);
+    sendingRef.current = true;
     setSending(true);
     try {
       const result = await api.submit(toEntry(state));
@@ -137,11 +164,15 @@ export function Draw(props: {
         } catch {
           // Nothing to clear if storage is unavailable.
         }
-        props.onSubmitted();
+        props.onSubmitted({ entry: result.entry, streak: result.streak });
       } else if (result.error === 'closed') {
         props.onClosed();
       } else {
-        setNotice(result.reason);
+        setNotice(
+          typeof result.reason === 'string' && result.reason !== ''
+            ? result.reason
+            : FAILED
+        );
       }
     } catch (err) {
       setNotice(
@@ -150,6 +181,7 @@ export function Draw(props: {
           : 'Something went wrong. Try again.'
       );
     } finally {
+      sendingRef.current = false;
       setSending(false);
     }
   };
@@ -160,11 +192,12 @@ export function Draw(props: {
   const label = sending ? 'Sending' : armed ? 'Sure? It is final' : 'Submit';
 
   return (
-    <Stage>
+    <>
       <button
         className="artbtn"
         style={{ left: 12, top: 12, width: 44, height: 44 }}
         aria-label="Home"
+        disabled={sending}
         onClick={props.onHome}
       >
         <img src="/art/home-btn.png" alt="" />
@@ -307,6 +340,6 @@ export function Draw(props: {
           {label}
         </button>
       </div>
-    </Stage>
+    </>
   );
 }
