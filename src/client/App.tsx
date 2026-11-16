@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import type { DayView } from '../shared/types';
+import type { Claim, DayView, PetView } from '../shared/types';
 import { ApiFailure, api } from './api';
+import { ClaimCard } from './screens/ClaimCard';
 import { Closed } from './screens/Closed';
 import { Draw } from './screens/Draw';
 import { Gallery } from './screens/Gallery';
+import { PetPick } from './screens/PetPick';
 import { Result } from './screens/Result';
 import { Start } from './screens/Start';
 import { Stage } from './ui';
@@ -50,8 +52,15 @@ export function App() {
   const [view, setView] = useState<DayView | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
   const [screen, setScreen] = useState<Screen>('start');
+  // The server hands a claim out once. It is kept here until the player dismisses it.
+  const [claim, setClaim] = useState<Claim | null>(null);
   const loadingRef = useRef(false);
   const refreshes = useRef(0);
+
+  // Keeps the first claim from any day response. A later `claim: null` never erases it.
+  const keepClaim = (v: DayView) => {
+    if (v.claim !== null) setClaim((kept) => kept ?? v.claim);
+  };
 
   const load = () => {
     if (loadingRef.current) return;
@@ -60,6 +69,7 @@ export function App() {
     api
       .day()
       .then((v) => {
+        keepClaim(v);
         setView(v);
         setScreen(
           v.open ? (v.myEntry === null ? 'start' : 'result') : 'closed'
@@ -80,6 +90,8 @@ export function App() {
     api
       .day()
       .then((v) => {
+        // A stale answer may carry the one-time claim, so keep it before the check.
+        keepClaim(v);
         if (mine === refreshes.current) setView(v);
       })
       .catch(() => {
@@ -91,6 +103,7 @@ export function App() {
     api
       .day()
       .then((v) => {
+        keepClaim(v);
         setView(v);
         setScreen('closed');
       })
@@ -109,19 +122,45 @@ export function App() {
   // Result needs a drawing to show. Without one the player starts at Start.
   const current =
     screen === 'result' && view.myEntry === null ? 'start' : screen;
+  // The pick and the claim card come before any screen. The pick is on the grass.
+  const before = view.pet === null ? 'pick' : claim !== null ? 'claim' : null;
   return (
     <Stage
-      horizon={current === 'start' || current === 'result' ? 'high' : 'low'}
+      horizon={
+        before === 'pick' ||
+        (before === null && (current === 'start' || current === 'result'))
+          ? 'high'
+          : 'low'
+      }
     >
-      {screenFor(current)}
+      {before === 'pick' && <PetPick onPicked={load} />}
+      {before === 'claim' && claim !== null && (
+        <ClaimCard claim={claim} onDone={() => setClaim(null)} />
+      )}
+      {before === null && screenFor(current)}
     </Stage>
   );
 
   function screenFor(shown: Screen) {
-    if (view === null) return null;
+    if (view === null || view.pet === null) return null;
+    const pet = view.pet;
     switch (shown) {
       case 'start':
-        return <Start view={view} onPlay={() => setScreen('draw')} />;
+        return (
+          <Start
+            view={view}
+            pet={pet}
+            onPlay={() => setScreen('draw')}
+            onPetChanged={(p: PetView) =>
+              setView({
+                ...view,
+                pet: p.pet,
+                petName: p.name,
+                placed: p.placed,
+              })
+            }
+          />
+        );
       case 'draw':
         return (
           <Draw
@@ -132,6 +171,7 @@ export function App() {
               setView({
                 ...view,
                 myEntry: result.entry,
+                fed: true,
                 streak: result.streak,
                 entryCount: view.entryCount + 1,
               });
@@ -153,9 +193,15 @@ export function App() {
           />
         );
       case 'result':
-        return <Result view={view} onGiveHearts={() => setScreen('gallery')} />;
+        return (
+          <Result
+            view={view}
+            pet={pet}
+            onGiveHearts={() => setScreen('gallery')}
+          />
+        );
       case 'closed':
-        return <Closed view={view} />;
+        return <Closed view={view} pet={pet} />;
     }
   }
 }

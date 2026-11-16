@@ -506,6 +506,73 @@ body {
   gap: var(--u);
 }
 
+/* Pets: things placed in the scene, the pick buttons, the name plate */
+.card {
+  position: absolute;
+  pointer-events: none;
+}
+.framed {
+  box-shadow: 0 0 0 var(--u) var(--line);
+}
+.clip {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pick {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: calc(2 * var(--u));
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.pick img {
+  position: static;
+}
+.pick:hover {
+  filter: brightness(1.06);
+}
+.pick:active {
+  translate: 0 var(--u);
+}
+.pick:focus-visible {
+  outline: var(--u) solid var(--ink);
+  outline-offset: var(--u);
+}
+.pick:disabled {
+  cursor: default;
+}
+/* The owner's nameplate, with the pet's name over its label. */
+.namebox {
+  position: absolute;
+  display: block;
+  padding: 0 var(--u);
+  margin: 0;
+  border: 0;
+  background: var(--plate);
+  color: var(--ink);
+  font: inherit;
+  text-transform: inherit;
+  text-align: center;
+  font-size: 16px;
+  line-height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.namebox:focus-visible {
+  outline: var(--u) solid var(--ink);
+  outline-offset: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stage *,
   .stage *::before,

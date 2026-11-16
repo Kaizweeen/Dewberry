@@ -1,15 +1,25 @@
 import { navigateTo } from '@devvit/web/client';
 import { DrawingArt } from '../draw/DrawingArt';
+import type { PetId } from '../../shared/pets';
 import type { DayView } from '../../shared/types';
 import { postUrl, streakText } from '../text';
 import { Icon, PetScene, vars } from '../ui';
 
-export function Result(props: { view: DayView; onGiveHearts: () => void }) {
+export function Result(props: {
+  view: DayView;
+  pet: PetId;
+  onGiveHearts: () => void;
+}) {
   const { view } = props;
   const left = view.heartsLeft;
   return (
     <>
-      <PetScene />
+      <PetScene
+        pet={props.pet}
+        fed={view.fed}
+        placed={view.placed}
+        name={view.petName}
+      />
       <div className="px tab t16" style={{ right: 12, top: 12 }}>
         <span>Day {view.day}</span>
       </div>

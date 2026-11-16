@@ -1,11 +1,12 @@
 import { navigateTo } from '@devvit/web/client';
 import { useEffect, useRef, useState } from 'react';
 import { DrawingArt } from '../draw/DrawingArt';
+import type { PetId } from '../../shared/pets';
 import type { DayView, Results } from '../../shared/types';
 import { api, ApiFailure } from '../api';
 import { ordinal } from '../ordinal';
 import { drawingsText, postUrl } from '../text';
-import { Icon, vars } from '../ui';
+import { Icon, PET_PX, vars } from '../ui';
 
 type Place = Results['top'][number];
 
@@ -61,8 +62,13 @@ function Podium(props: { top: Place[] }) {
   );
 }
 
-export function Closed(props: { view: DayView }) {
+// Whole-number scales that keep every pet at most 81 pixels tall (Star is 9).
+const CLOSED_SCALE = { star: 9, slime: 8, angel: 7 } as const;
+
+export function Closed(props: { view: DayView; pet: PetId }) {
   const { view } = props;
+  const px = PET_PX[props.pet];
+  const scale = CLOSED_SCALE[props.pet];
   const [results, setResults] = useState<Results | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const asked = useRef(false);
@@ -144,9 +150,14 @@ export function Closed(props: { view: DayView }) {
         style={{ left: 148, top: 566, width: 80, height: 24 }}
       />
       <img
-        src="/art/star.png"
-        alt="Your pet, Star"
-        style={{ left: 147, top: 498, width: 81, height: 81 }}
+        src={`/art/${props.pet}.png`}
+        alt={`Your pet, ${view.petName}`}
+        style={{
+          left: Math.round(187.5 - (px.w * scale) / 2),
+          top: 579 - px.h * scale,
+          width: px.w * scale,
+          height: px.h * scale,
+        }}
       />
     </>
   );
