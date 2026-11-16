@@ -22,6 +22,18 @@ async function dayWith(users: string[]): Promise<Store> {
 
 const others = (n: number) => Array.from({ length: n }, (_, i) => `o${i}`);
 
+/** Reads hLen at once but returns it a macrotask later, so parallel calls interleave like real Redis round trips. */
+function interleaving(store: Store): Store {
+  return {
+    ...store,
+    async hLen(key) {
+      const n = await store.hLen(key);
+      await new Promise((r) => setTimeout(r, 0));
+      return n;
+    },
+  };
+}
+
 describe('getGalleryPage', () => {
   it('is locked until the viewer submits', async () => {
     const store = await dayWith(['a']);
@@ -59,14 +71,25 @@ describe('getGalleryPage', () => {
   });
 
   it('shows the least seen entries first', async () => {
-    const store = await dayWith(['v1', 'v2', ...others(12)]);
-    await getGalleryPage(store, { day: 1, userId: 'v1' });
-    const unseen = (await store.zAll(keys.views(1)))
-      .filter((v) => v.score === 0 && v.member !== 'v2')
-      .map((v) => v.member);
-    const page = await getGalleryPage(store, { day: 1, userId: 'v2' });
+    const all = others(20);
+    const store = await dayWith(['viewer', ...all]);
+    const busy = all.slice(0, 8);
+    for (const id of busy) await store.zAdd(keys.views(1), id, 5);
+    const page = await getGalleryPage(store, { day: 1, userId: 'viewer' });
     const ids = page?.entries.map((e) => e.id) ?? [];
-    for (const id of unseen) expect(ids).toContain(id);
+    expect(ids).toHaveLength(12);
+    for (const id of busy) expect(ids).not.toContain(id);
+  });
+
+  it('gives parallel requests from one viewer different entries', async () => {
+    const raced = interleaving(await dayWith(['viewer', ...others(30)]));
+    const pages = await Promise.all([
+      getGalleryPage(raced, { day: 1, userId: 'viewer' }),
+      getGalleryPage(raced, { day: 1, userId: 'viewer' }),
+    ]);
+    const ids = pages.flatMap((p) => p?.entries.map((e) => e.id) ?? []);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) expect(await raced.zScore(keys.views(1), id)).toBe(1);
   });
 
   it('skips hidden entries', async () => {
@@ -113,6 +136,23 @@ describe('heartEntry', () => {
       ok: false,
       error: 'none-left',
     });
+  });
+
+  it('never spends more than 5 hearts when requests run in parallel', async () => {
+    for (let i = 0; i < 4; i++)
+      await heartEntry(store, { day: 1, userId: 'viewer', targetId: `o${i}` });
+    const raced = interleaving(store);
+    const results = await Promise.all([
+      heartEntry(raced, { day: 1, userId: 'viewer', targetId: 'o4' }),
+      heartEntry(raced, { day: 1, userId: 'viewer', targetId: 'o5' }),
+    ]);
+    const spent = await store.hLen(keys.hearted(1, 'viewer'));
+    console.log('DBG', spent, JSON.stringify(results));
+    expect(spent).toBeLessThanOrEqual(5);
+    const given =
+      ((await store.zScore(keys.hearts(1), 'o4')) ?? 0) +
+      ((await store.zScore(keys.hearts(1), 'o5')) ?? 0);
+    expect(given).toBe(results.filter((r) => r.ok).length);
   });
 
   it('refuses your own entry', async () => {

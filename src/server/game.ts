@@ -141,17 +141,19 @@ export async function getGalleryPage(
     )
     .slice(0, PAGE_SIZE);
 
-  if (page.length > 0) {
-    await store.hSet(
-      keys.served(a.day, a.userId),
-      Object.fromEntries(page.map((id) => [id, '1']))
-    );
+  // Claim each id; a parallel request from this viewer may have taken some already.
+  const claimed = (
     await Promise.all(
-      page.map((id) => store.zIncrBy(keys.views(a.day), id, 1))
-    );
-  }
+      page.map(async (id) =>
+        (await store.hSetNX(keys.served(a.day, a.userId), id, '1')) ? id : null
+      )
+    )
+  ).filter((id) => id !== null);
+  await Promise.all(
+    claimed.map((id) => store.zIncrBy(keys.views(a.day), id, 1))
+  );
   return {
-    entries: page.flatMap((id) => {
+    entries: claimed.flatMap((id) => {
       const entry = entries[id];
       return entry === undefined ? [] : [{ id, entry }];
     }),
@@ -176,16 +178,20 @@ export async function heartEntry(
   if (!target) return { ok: false, error: 'missing' };
   if (already) return { ok: false, error: 'already' };
   if (used >= HEARTS_PER_DAY) return { ok: false, error: 'none-left' };
-  // ponytail: check then write. Two simultaneous taps could spend a sixth heart.
-  // Wrap in a Redis transaction if that ever shows up.
   const fresh = await store.hSetNX(
     keys.hearted(a.day, a.userId),
     a.targetId,
     '1'
   );
   if (!fresh) return { ok: false, error: 'already' };
+  // Re-check the hash after writing: parallel taps can pass the read above, so undo if over the limit.
+  const total = await store.hLen(keys.hearted(a.day, a.userId));
+  if (total > HEARTS_PER_DAY) {
+    await store.hDel(keys.hearted(a.day, a.userId), [a.targetId]);
+    return { ok: false, error: 'none-left' };
+  }
   await store.zIncrBy(keys.hearts(a.day), a.targetId, 1);
-  return { ok: true, heartsLeft: HEARTS_PER_DAY - used - 1 };
+  return { ok: true, heartsLeft: HEARTS_PER_DAY - total };
 }
 
 export const MIN_ROLL_GAP_MS = 12 * 60 * 60 * 1000;

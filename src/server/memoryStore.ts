@@ -41,6 +41,9 @@ export function memoryStore(): Store {
     async hLen(k) {
       return h(k).size;
     },
+    async hDel(k, fields) {
+      return fields.filter((f) => h(k).delete(f)).length;
+    },
     async zAdd(k, member, score) {
       z(k).set(member, score);
     },

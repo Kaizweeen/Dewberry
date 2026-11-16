@@ -7,6 +7,8 @@ export type Store = {
   hSetNX(key: string, field: string, value: string): Promise<boolean>;
   hGetAll(key: string): Promise<Record<string, string>>;
   hLen(key: string): Promise<number>;
+  /** Removes the fields. Returns how many were removed. */
+  hDel(key: string, fields: string[]): Promise<number>;
   zAdd(key: string, member: string, score: number): Promise<void>;
   zIncrBy(key: string, member: string, by: number): Promise<number>;
   zScore(key: string, member: string): Promise<number | undefined>;
