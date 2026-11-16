@@ -42,5 +42,8 @@
         "cron": "0 12 * * *"
       }
     }
+  },
+  "dev": {
+    "subreddit": "dewberry_daily_dev"
   }
 }
