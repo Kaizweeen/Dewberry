@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grout screen mockups</title>
+    <style>
+      @font-face {
+        font-family: 'Silkscreen';
+        src: url('/node_modules/@fontsource/silkscreen/files/silkscreen-latin-400-normal.woff2')
+          format('woff2');
+        font-weight: 400;
+        font-display: block;
+      }
+
+      :root {
+        /* Sampled from the owner's art (nameplate, buttons, waffle panel, Star). */
+        --plate: #f1f1f1;
+        --line: #838383;
+        --line-hi: #c3c3c3;
+        --ink: #565656;
+        --cream: #ffe59a;
+        --caramel: #e3a75c;
+        --caramel-hi: #f1c67b;
+        --caramel-lo: #c8873d;
+        --toast: #6b4420;
+        --heart: #ff5e55;
+        --cell: #e2e2e2;
+        --cell-line: #cecece;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #26262b;
+        color: #e9e9ec;
+        font: 16px/1.5 system-ui, sans-serif;
+      }
+
+      /* ---------- Review page chrome (not part of the game) ---------- */
+      .page {
+        max-width: 1488px;
+        margin: 0 auto;
+        padding: 32px 24px 96px;
+      }
+      .page > header h1 {
+        font-size: 28px;
+        margin: 0 0 8px;
+      }
+      .page > header p {
+        max-width: 70ch;
+        margin: 0 0 8px;
+        color: #c4c4cc;
+      }
+      .page nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin: 16px 0 8px;
+      }
+      .page a {
+        color: #ffe59a;
+        text-underline-offset: 3px;
+      }
+      .shot {
+        margin: 56px 0 0;
+      }
+      .shot > h2 {
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+      .shot > p {
+        max-width: 75ch;
+        margin: 0 0 16px;
+        color: #c4c4cc;
+      }
+      .pair {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        align-items: flex-start;
+      }
+      .fit {
+        flex: none;
+      }
+      body.only {
+        background: #000;
+      }
+      body.only .page {
+        padding: 0;
+        max-width: none;
+      }
+      body.only .page > header,
+      body.only .shot > h2,
+      body.only .shot > p,
+      body.only .hide {
+        display: none;
+      }
+      body.only .shot {
+        margin: 0;
+      }
+
+      /* ---------- The game ---------- */
+      .frame {
+        position: relative;
+        overflow: hidden;
+        font-family: 'Silkscreen', monospace;
+        text-transform: uppercase;
+        color: var(--ink);
+        background: #53daff;
+        --u: 7px;
+      }
+      .frame ::selection {
+        background: var(--cream);
+        color: var(--toast);
+      }
+      .frame img {
+        position: absolute;
+        image-rendering: pixelated;
+        user-select: none;
+      }
+      .frame h1,
+      .frame p,
+      .frame ul {
+        margin: 0;
+        padding: 0;
+        font-weight: 400;
+      }
+      .frame h1 {
+        text-wrap: balance;
+      }
+      .frame ul {
+        list-style: none;
+      }
+      .d {
+        width: 1440px;
+        height: 1024px;
+      }
+      .d .sky {
+        left: -54px;
+        top: -24px;
+        width: 1632px;
+        height: 544px;
+      }
+      .d .grass {
+        left: -96px;
+        top: 494px;
+        width: 1632px;
+        height: 544px;
+      }
+      .m {
+        width: 390px;
+        height: 760px;
+        --u: 4px;
+      }
+      .m .sky {
+        left: -381px;
+        top: 0;
+        width: 1152px;
+        height: 384px;
+      }
+      .m .grass {
+        left: -381px;
+        top: 376px;
+        width: 1152px;
+        height: 384px;
+      }
+
+      /* Pixel-chamfered box, same corner steps as the owner's nameplate and buttons. */
+      .px {
+        position: absolute;
+        isolation: isolate;
+        padding: var(--u);
+        background:
+          linear-gradient(var(--edge-hi, var(--line-hi)), var(--edge-hi, var(--line-hi))) top
+            left / calc(100% - var(--u)) calc(100% - var(--u)) no-repeat,
+          var(--edge-lo, var(--line));
+        clip-path: polygon(
+          calc(2 * var(--u)) 0,
+          calc(100% - 2 * var(--u)) 0,
+          calc(100% - 2 * var(--u)) var(--u),
+          calc(100% - var(--u)) var(--u),
+          calc(100% - var(--u)) calc(2 * var(--u)),
+          100% calc(2 * var(--u)),
+          100% calc(100% - 2 * var(--u)),
+          calc(100% - var(--u)) calc(100% - 2 * var(--u)),
+          calc(100% - var(--u)) calc(100% - var(--u)),
+          calc(100% - 2 * var(--u)) calc(100% - var(--u)),
+          calc(100% - 2 * var(--u)) 100%,
+          calc(2 * var(--u)) 100%,
+          calc(2 * var(--u)) calc(100% - var(--u)),
+          var(--u) calc(100% - var(--u)),
+          var(--u) calc(100% - 2 * var(--u)),
+          0 calc(100% - 2 * var(--u)),
+          0 calc(2 * var(--u)),
+          var(--u) calc(2 * var(--u)),
+          var(--u) var(--u),
+          calc(2 * var(--u)) var(--u)
+        );
+      }
+      .px::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        inset: var(--u);
+        background: var(--fill, var(--plate));
+        clip-path: polygon(
+          var(--u) 0,
+          calc(100% - var(--u)) 0,
+          calc(100% - var(--u)) var(--u),
+          100% var(--u),
+          100% calc(100% - var(--u)),
+          calc(100% - var(--u)) calc(100% - var(--u)),
+          calc(100% - var(--u)) 100%,
+          var(--u) 100%,
+          var(--u) calc(100% - var(--u)),
+          0 calc(100% - var(--u)),
+          0 var(--u),
+          var(--u) var(--u)
+        );
+      }
+      .px.in {
+        position: relative;
+      }
+      .even {
+        --edge-hi: var(--line);
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .grow {
+        flex: 1;
+      }
+      .stack > * {
+        flex-shrink: 0;
+      }
+      .t80 {
+        font-size: 80px;
+        line-height: 80px;
+      }
+      .t56 {
+        font-size: 56px;
+        line-height: 56px;
+      }
+      .t40 {
+        font-size: 40px;
+        line-height: 44px;
+      }
+      .t32 {
+        font-size: 32px;
+        line-height: 36px;
+      }
+      .t24 {
+        font-size: 24px;
+        line-height: 30px;
+      }
+      .t16 {
+        font-size: 16px;
+        line-height: 22px;
+      }
+      .display {
+        color: var(--line);
+      }
+
+      .tab {
+        --fill: var(--cream);
+        --edge-hi: var(--caramel-hi);
+        --edge-lo: var(--caramel-lo);
+        color: var(--toast);
+        white-space: nowrap;
+      }
+      .tab span {
+        display: block;
+        padding: 0 calc(3 * var(--u));
+      }
+
+      /* Buttons */
+      .btn {
+        font-family: inherit;
+        text-transform: inherit;
+        color: var(--ink);
+        border: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: calc(2 * var(--u));
+        --edge-hi: var(--line);
+      }
+      .btn.in {
+        position: relative;
+      }
+      .btn:hover {
+        --fill: #ffffff;
+      }
+      .btn:active {
+        translate: 0 var(--u);
+      }
+      .btn:focus-visible::before {
+        box-shadow: inset 0 0 0 var(--u) var(--ink);
+      }
+      .btn.primary {
+        --fill: var(--cream);
+        --edge-hi: var(--caramel-hi);
+        --edge-lo: var(--caramel-lo);
+        color: var(--toast);
+      }
+      .btn.primary:hover {
+        --fill: #fff0bd;
+      }
+      .btn.primary:focus-visible::before {
+        box-shadow: inset 0 0 0 var(--u) var(--toast);
+      }
+      .btn[disabled] {
+        --fill: #e4e4e4;
+        color: #8d8d8d;
+        cursor: default;
+      }
+      .artbtn {
+        position: absolute;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+      }
+      .artbtn img {
+        position: static;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .artbtn:hover {
+        filter: brightness(1.06);
+      }
+      .artbtn:active {
+        translate: 0 4px;
+      }
+      .artbtn:focus-visible {
+        outline: 4px solid var(--ink);
+        outline-offset: 4px;
+      }
+      .icon {
+        display: block;
+        flex: none;
+      }
+      .icon svg,
+      .art svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Palette swatches */
+      .swatches {
+        display: flex;
+        gap: calc(4 * var(--u));
+      }
+      .swatches li {
+        display: grid;
+        justify-items: center;
+        gap: var(--u);
+      }
+      .chip {
+        width: calc(14 * var(--u));
+        height: calc(14 * var(--u));
+        --edge-hi: var(--line);
+      }
+
+      /* A drawing shown in a waffle pocket */
+      .pocket {
+        background: var(--caramel);
+        box-shadow:
+          inset var(--pu) var(--pu) 0 0 var(--caramel-hi),
+          0 0 0 var(--pu) var(--cream);
+        padding: var(--pu) 0 0 var(--pu);
+      }
+      .art {
+        display: block;
+      }
+
+      /* Drawing board */
+      .board .cells {
+        display: grid;
+        grid-template-columns: repeat(8, var(--c));
+        grid-auto-rows: var(--c);
+        margin: var(--u);
+        background: var(--cell-line);
+      }
+      .board .cells i {
+        background: var(--cell);
+        box-shadow: inset 0 0 0 1px var(--cell-line);
+      }
+      .board .cells i[data-on] {
+        box-shadow: none;
+      }
+
+      .pick {
+        font-family: inherit;
+        font-size: inherit;
+        text-transform: inherit;
+        color: var(--ink);
+        border: 0;
+        cursor: pointer;
+        --edge-hi: var(--line);
+        text-align: left;
+      }
+      .pick .block {
+        display: block;
+        height: calc(8 * var(--u));
+      }
+      .pick .row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: var(--u) calc(2 * var(--u)) 0;
+      }
+      .pick[aria-pressed='true'] {
+        --edge-hi: var(--ink);
+        --edge-lo: var(--ink);
+        --fill: #ffffff;
+        translate: 0 calc(-1 * var(--u));
+      }
+      .pick:focus-visible::before {
+        box-shadow: inset 0 0 0 var(--u) var(--ink);
+      }
+
+      .entry {
+        position: absolute;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+      }
+      .entry:hover {
+        translate: 0 -4px;
+      }
+      .entry:focus-visible {
+        outline: 4px solid var(--toast);
+        outline-offset: 2px;
+      }
+      .entry .badge {
+        position: absolute;
+        right: -10%;
+        top: -10%;
+        width: 44%;
+        filter: drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(2px 0 0 #fff)
+          drop-shadow(-2px 0 0 #fff);
+      }
+
+      .hearts {
+        display: flex;
+        gap: var(--u);
+      }
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        gap: calc(2 * var(--u));
+      }
+      .podium {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: calc(5 * var(--u));
+      }
+      .podium li {
+        display: grid;
+        justify-items: center;
+        gap: var(--u);
+        min-width: 0;
+      }
+      .podium .who {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .count {
+        display: flex;
+        align-items: center;
+        gap: var(--u);
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      THESIS: The owner's pet scene is the whole interface. Every screen is that sky and
+      grass with one plate of the owner's own chrome on it. No app shell, no cards.
+      OWN-WORLD: Pastel pixel sky and grass, off-white plates with stepped gray borders
+      (from the nameplate), the waffle panel as the place where drawings sit, cream and
+      caramel for the one primary action, Star red for hearts, Silkscreen lettering.
+      STORY: See today's prompt, draw it in two minutes, give five hearts, come back.
+      FIRST VIEWPORT: Pet on the left as in the Figma frames, a plate on the right in the
+      waffle panel's place with the prompt at display size and one Play button.
+      FORM: Pinned by the owner's Figma file. No concept roll was run.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish
+      review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+    -->
+    <div class="page">
+      <header>
+        <h1>Grout screen mockups</h1>
+        <p>
+          Five screens for the daily loop, each at desktop size (1440 x 1024, laid out like
+          your Figma frames) and at phone size (390 x 760). The sky, grass, bush, shadow,
+          pets, nameplate, home button, and waffle panel are your art, exported from Figma
+          and untouched. Everything else is new and needs your approval.
+        </p>
+        <p>
+          The drawings and player names here are samples made for this page. They are not
+          real entries. "Grout" is still a working title.
+        </p>
+        <nav>
+          <a href="#start">Start</a><a href="#draw">Draw</a><a href="#gallery">Gallery</a
+          ><a href="#result">Result</a><a href="#closed">Closed day</a>
+        </nav>
+      </header>
+
+      <!-- ================= START ================= -->
+      <section class="shot" id="start">
+        <h2>1. Start</h2>
+        <p>
+          What a player sees on opening today's post. Your pet scene on the left, today's
+          prompt where the waffle panel sits in your frames. Tapping the pet opens the
+          inventory (your Figma screen), which arrives with the pet system.
+        </p>
+        <div class="pair">
+          <div class="fit">
+            <div class="frame d" id="start-d">
+              <img class="sky" src="/art/sky.png" alt="" /><img
+                class="grass"
+                src="/art/grass.png"
+                alt=""
+              />
+              <img src="/art/bush.png" alt="" style="left: 30px; top: 402px; width: 476px; height: 170px" />
+              <img src="/art/shadow.png" alt="" style="left: 140px; top: 597px; width: 240px; height: 72px" />
+              <img src="/art/star.png" alt="Your pet, Star" style="left: 122px; top: 326px; width: 279px; height: 279px" />
+              <img src="/art/nameplate.png" alt="Pet name" style="left: 78px; top: 691px; width: 287px; height: 77px" />
+
+              <div class="px tab t32" style="right: 101px; top: 117px"><span>Day 12</span></div>
+              <div class="px" style="left: 541px; top: 160px; width: 840px; height: 756px">
+                <div class="stack" style="padding: 56px 49px 42px">
+                  <h1 class="t80 display">Draw a breakfast</h1>
+                  <p class="t24" style="margin-top: 42px">Four colors. A few pixels of each.</p>
+                  <ul class="swatches t32" style="margin-top: 21px">
+                    <li><i class="px in chip" style="--fill: #fff4c2"></i>14</li>
+                    <li><i class="px in chip" style="--fill: #f2b24c"></i>12</li>
+                    <li><i class="px in chip" style="--fill: #d9534f"></i>8</li>
+                    <li><i class="px in chip" style="--fill: #5a3a22"></i>6</li>
+                  </ul>
+                  <div class="grow"></div>
+                  <button class="px in btn primary t56" style="height: 126px">Play</button>
+                  <p class="meta t24" style="margin-top: 28px">
+                    <span>Streak: 3 days</span><span>27 drawings so far</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="frame m" id="start-m">
+            <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" style="left: -669px; top: 200px; width: 1728px; height: 576px" />
+            <img src="/art/bush.png" alt="" style="left: 55px; top: 138px; width: 280px; height: 100px" />
+            <img src="/art/shadow.png" alt="" style="left: 135px; top: 246px; width: 120px; height: 36px" />
+            <img src="/art/star.png" alt="Your pet, Star" style="left: 123px; top: 110px; width: 144px; height: 144px" />
+            <img src="/art/nameplate.png" alt="Pet name" style="left: 113px; top: 296px; width: 164px; height: 44px" />
+            <div class="px tab t16" style="right: 16px; top: 16px"><span>Day 12</span></div>
+            <div class="px" style="left: 16px; top: 364px; width: 358px; height: 380px">
+              <div class="stack" style="padding: 20px 16px 16px">
+                <h1 class="t40 display">Draw a breakfast</h1>
+                <p class="t16" style="margin-top: 16px">Four colors. A few pixels of each.</p>
+                <ul class="swatches t24" style="margin-top: 8px">
+                  <li><i class="px in chip" style="--fill: #fff4c2"></i>14</li>
+                  <li><i class="px in chip" style="--fill: #f2b24c"></i>12</li>
+                  <li><i class="px in chip" style="--fill: #d9534f"></i>8</li>
+                  <li><i class="px in chip" style="--fill: #5a3a22"></i>6</li>
+                </ul>
+                <div class="grow"></div>
+                <button class="px in btn primary t32" style="height: 64px">Play</button>
+                <p class="meta t16" style="margin-top: 12px">
+                  <span>Streak: 3 days</span><span>27 drawings</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= DRAW ================= -->
+      <section class="shot" id="draw">
+        <h2>2. Draw</h2>
+        <p>
+          Pick a color, then tap or drag on the grid. Each color shows how many pixels are
+          left. Shown mid-drawing, with orange selected.
+        </p>
+        <div class="pair">
+          <div class="fit">
+            <div class="frame d" id="draw-d">
+              <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" />
+              <button class="artbtn" style="left: 60px; top: 56px; width: 99px; height: 99px">
+                <img src="/art/home-btn.png" alt="Home" />
+              </button>
+              <div class="px tab t32" style="right: 974px; top: 147px"><span>Day 12</span></div>
+              <div class="px" style="left: 60px; top: 190px; width: 448px; height: 778px">
+                <div class="stack" style="padding: 42px 28px 28px">
+                  <h1 class="t40 display">A breakfast</h1>
+                  <div
+                    class="t24"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 21px 14px; margin-top: 35px"
+                  >
+                    <button class="px in pick" aria-pressed="false" aria-label="Cream, 2 pixels left">
+                      <span class="block" style="background: #fff4c2"></span>
+                      <span class="row"><span>Cream</span><span class="t32">2</span></span>
+                    </button>
+                    <button class="px in pick" aria-pressed="true" aria-label="Orange, 8 pixels left">
+                      <span class="block" style="background: #f2b24c"></span>
+                      <span class="row"><span>Orange</span><span class="t32">8</span></span>
+                    </button>
+                    <button class="px in pick" aria-pressed="false" aria-label="Red, 6 pixels left">
+                      <span class="block" style="background: #d9534f"></span>
+                      <span class="row"><span>Red</span><span class="t32">6</span></span>
+                    </button>
+                    <button class="px in pick" aria-pressed="false" aria-label="Brown, 4 pixels left">
+                      <span class="block" style="background: #5a3a22"></span>
+                      <span class="row"><span>Brown</span><span class="t32">4</span></span>
+                    </button>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 35px">
+                    <button class="px in btn t24" style="height: 77px">
+                      <span class="icon" data-icon="undo" style="width: 35px; height: 35px"></span>Undo
+                    </button>
+                    <button class="px in btn t24" style="height: 77px">
+                      <span class="icon" data-icon="erase" style="width: 35px; height: 35px"></span>Erase
+                    </button>
+                  </div>
+                  <div class="grow"></div>
+                  <p class="t24">Your drawing cannot be changed after you submit.</p>
+                  <button class="px in btn primary t40" style="height: 112px; margin-top: 21px">Submit</button>
+                </div>
+              </div>
+              <div class="px board" style="left: 588px; top: 139px; --c: 88px">
+                <div class="cells" data-board="0000000000111000011221000112210000111000000000000343000000000000" data-pal="breakfast"></div>
+              </div>
+            </div>
+          </div>
+          <div class="frame m" id="draw-m">
+            <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" />
+            <button class="artbtn" style="left: 16px; top: 16px; width: 44px; height: 44px">
+              <img src="/art/home-btn.png" alt="Home" />
+            </button>
+            <div class="px" style="left: 72px; top: 16px; width: 302px; height: 44px">
+              <h1 class="t24 display" style="padding: 3px 12px 0">A breakfast</h1>
+            </div>
+            <div class="px board" style="left: 19px; top: 72px; --c: 42px">
+              <div class="cells" data-board="0000000000111000011221000112210000111000000000000343000000000000" data-pal="breakfast"></div>
+            </div>
+            <div class="t16" style="position: absolute; left: 19px; top: 446px; width: 352px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px">
+              <button class="px in pick" aria-pressed="false">
+                <span class="block" style="background: #fff4c2"></span>
+                <span class="row"><span class="t24">2</span></span>
+              </button>
+              <button class="px in pick" aria-pressed="true">
+                <span class="block" style="background: #f2b24c"></span>
+                <span class="row"><span class="t24">8</span></span>
+              </button>
+              <button class="px in pick" aria-pressed="false">
+                <span class="block" style="background: #d9534f"></span>
+                <span class="row"><span class="t24">6</span></span>
+              </button>
+              <button class="px in pick" aria-pressed="false">
+                <span class="block" style="background: #5a3a22"></span>
+                <span class="row"><span class="t24">4</span></span>
+              </button>
+            </div>
+            <div style="position: absolute; left: 19px; top: 536px; width: 352px; display: grid; grid-template-columns: 60px 60px 1fr; gap: 8px">
+              <button class="px in btn" style="height: 60px" aria-label="Undo">
+                <span class="icon" data-icon="undo" style="width: 28px; height: 28px"></span>
+              </button>
+              <button class="px in btn" style="height: 60px" aria-label="Erase">
+                <span class="icon" data-icon="erase" style="width: 28px; height: 28px"></span>
+              </button>
+              <button class="px in btn primary t32" style="height: 60px">Submit</button>
+            </div>
+            <div class="px" style="left: 19px; top: 612px; width: 352px">
+              <p class="t16" style="padding: 8px 12px">Your drawing cannot be changed after you submit.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= GALLERY ================= -->
+      <section class="shot" id="gallery">
+        <h2>3. Gallery</h2>
+        <p>
+          After submitting, other players' drawings sit in the pockets of your waffle panel,
+          twelve at a time (the panel has twelve pockets). Tap one to give it a heart.
+          Shown with two of five hearts spent.
+        </p>
+        <div class="pair">
+          <div class="fit">
+            <div class="frame d" id="gallery-d">
+              <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" />
+              <button class="artbtn" style="left: 60px; top: 56px; width: 99px; height: 99px">
+                <img src="/art/home-btn.png" alt="Home" />
+              </button>
+              <div class="px" style="left: 60px; top: 190px; width: 420px; height: 630px">
+                <div class="stack" style="padding: 42px 28px 28px">
+                  <h1 class="t40 display">Give hearts</h1>
+                  <div class="hearts" style="margin-top: 28px" role="img" aria-label="3 of 5 hearts left">
+                    <span class="icon" data-icon="heart" style="width: 56px; height: 48px"></span>
+                    <span class="icon" data-icon="heart" style="width: 56px; height: 48px"></span>
+                    <span class="icon" data-icon="heart" style="width: 56px; height: 48px"></span>
+                    <span class="icon" data-icon="heartEmpty" style="width: 56px; height: 48px"></span>
+                    <span class="icon" data-icon="heartEmpty" style="width: 56px; height: 48px"></span>
+                  </div>
+                  <p class="t24" style="margin-top: 28px">
+                    Tap a drawing you like. You have 3 hearts left. A heart cannot be taken back.
+                  </p>
+                  <div class="grow"></div>
+                  <button class="px in btn t24" style="height: 77px">
+                    More drawings<span class="icon" data-icon="more" style="width: 35px; height: 25px"></span>
+                  </button>
+                  <button class="px in btn primary t40" style="height: 98px; margin-top: 14px">Done</button>
+                </div>
+              </div>
+              <img src="/art/panel.png" alt="" style="left: 526px; top: 146px; width: 868px; height: 784px" />
+              <div data-gallery="d"></div>
+            </div>
+          </div>
+          <div class="frame m" id="gallery-m">
+            <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" />
+            <button class="artbtn" style="left: 16px; top: 16px; width: 44px; height: 44px">
+              <img src="/art/home-btn.png" alt="Home" />
+            </button>
+            <div class="px" style="left: 72px; top: 16px; width: 302px; height: 44px">
+              <div class="hearts" style="padding: 8px 12px; --u: 6px" role="img" aria-label="3 of 5 hearts left">
+                <span class="icon" data-icon="heart" style="width: 28px; height: 24px"></span>
+                <span class="icon" data-icon="heart" style="width: 28px; height: 24px"></span>
+                <span class="icon" data-icon="heart" style="width: 28px; height: 24px"></span>
+                <span class="icon" data-icon="heartEmpty" style="width: 28px; height: 24px"></span>
+                <span class="icon" data-icon="heartEmpty" style="width: 28px; height: 24px"></span>
+                <span class="t16" style="margin-left: auto">3 left</span>
+              </div>
+            </div>
+            <img src="/art/panel.png" alt="" style="left: 9px; top: 76px; width: 372px; height: 336px" />
+            <div data-gallery="m"></div>
+            <div class="px" style="left: 16px; top: 428px; width: 358px">
+              <p class="t16" style="padding: 8px 12px">
+                Tap a drawing you like. A heart cannot be taken back.
+              </p>
+            </div>
+            <div style="position: absolute; left: 16px; top: 520px; width: 358px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+              <button class="px in btn t24" style="height: 60px">More</button>
+              <button class="px in btn primary t32" style="height: 60px">Done</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= RESULT ================= -->
+      <section class="shot" id="result">
+        <h2>4. Result card (day still open)</h2>
+        <p>
+          Where a player lands after the gallery, and on every return visit that day. Hearts
+          so far and the streak are real numbers from the server.
+        </p>
+        <div class="pair">
+          <div class="fit">
+            <div class="frame d" id="result-d">
+              <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" />
+              <img src="/art/bush.png" alt="" style="left: 30px; top: 402px; width: 476px; height: 170px" />
+              <img src="/art/shadow.png" alt="" style="left: 140px; top: 597px; width: 240px; height: 72px" />
+              <img src="/art/star.png" alt="Your pet, Star" style="left: 122px; top: 326px; width: 279px; height: 279px" />
+              <img src="/art/nameplate.png" alt="Pet name" style="left: 78px; top: 691px; width: 287px; height: 77px" />
+              <div class="px tab t32" style="right: 101px; top: 117px"><span>Day 12</span></div>
+              <div class="px" style="left: 541px; top: 160px; width: 840px; height: 756px">
+                <div class="stack" style="padding: 56px 49px 42px">
+                  <h1 class="t56 display">Your drawing is in</h1>
+                  <div style="display: flex; gap: 42px; margin-top: 42px; align-items: flex-start">
+                    <div class="pocket" style="--pu: 20px; margin: 20px 0 0 20px">
+                      <span class="art" data-entry="0000000000111000011221000112210000111000000000000343434000000000" data-pal="breakfast" style="width: 320px; height: 320px" role="img" aria-label="Your drawing of a breakfast"></span>
+                    </div>
+                    <div class="t24" style="display: grid; gap: 28px; padding-top: 14px">
+                      <p class="count t32">
+                        <span class="icon" data-icon="heart" style="width: 42px; height: 36px"></span>2 hearts so far
+                      </p>
+                      <p class="t32">Streak: 4 days</p>
+                      <p>Results arrive when the next day opens, at 12:00 UTC.</p>
+                    </div>
+                  </div>
+                  <div class="grow"></div>
+                  <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 21px">
+                    <button class="px in btn primary t32" style="height: 112px">Give 3 hearts</button>
+                    <button class="px in btn t32" style="height: 112px">
+                      <span class="icon" data-icon="comment" style="width: 35px; height: 35px"></span>Comments
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="frame m" id="result-m">
+            <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" style="left: -669px; top: 200px; width: 1728px; height: 576px" />
+            <img src="/art/bush.png" alt="" style="left: 55px; top: 138px; width: 280px; height: 100px" />
+            <img src="/art/shadow.png" alt="" style="left: 135px; top: 246px; width: 120px; height: 36px" />
+            <img src="/art/star.png" alt="Your pet, Star" style="left: 123px; top: 110px; width: 144px; height: 144px" />
+            <img src="/art/nameplate.png" alt="Pet name" style="left: 113px; top: 296px; width: 164px; height: 44px" />
+            <div class="px tab t16" style="right: 16px; top: 16px"><span>Day 12</span></div>
+            <div class="px" style="left: 16px; top: 364px; width: 358px; height: 380px">
+              <div class="stack" style="padding: 20px 16px 16px">
+                <h1 class="t32 display">Your drawing is in</h1>
+                <div style="display: flex; gap: 20px; margin-top: 16px; align-items: flex-start">
+                  <div class="pocket" style="--pu: 8px; margin: 8px 0 0 8px">
+                    <span class="art" data-entry="0000000000111000011221000112210000111000000000000343434000000000" data-pal="breakfast" style="width: 112px; height: 112px" role="img" aria-label="Your drawing of a breakfast"></span>
+                  </div>
+                  <div class="t16" style="display: grid; gap: 10px">
+                    <p class="count t24">
+                      <span class="icon" data-icon="heart" style="width: 28px; height: 24px"></span>2 so far
+                    </p>
+                    <p>Streak: 4 days</p>
+                    <p>Results at 12:00 UTC, when the next day opens.</p>
+                  </div>
+                </div>
+                <div class="grow"></div>
+                <div style="display: grid; grid-template-columns: 1fr 60px; gap: 8px">
+                  <button class="px in btn primary t24" style="height: 60px">Give 3 hearts</button>
+                  <button class="px in btn" style="height: 60px" aria-label="Comments">
+                    <span class="icon" data-icon="comment" style="width: 28px; height: 28px"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CLOSED ================= -->
+      <section class="shot" id="closed">
+        <h2>5. Closed day</h2>
+        <p>
+          What an older post shows once the next day has opened: the top three, where this
+          player placed, and one button to today's post. If the player did not draw that
+          day, the placing line says so instead.
+        </p>
+        <div class="pair">
+          <div class="fit">
+            <div class="frame d" id="closed-d">
+              <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" />
+              <img src="/art/bush.png" alt="" style="left: 30px; top: 402px; width: 476px; height: 170px" />
+              <img src="/art/shadow.png" alt="" style="left: 140px; top: 597px; width: 240px; height: 72px" />
+              <img src="/art/star.png" alt="Your pet, Star" style="left: 122px; top: 326px; width: 279px; height: 279px" />
+              <img src="/art/nameplate.png" alt="Pet name" style="left: 78px; top: 691px; width: 287px; height: 77px" />
+              <div class="px tab t32" style="right: 101px; top: 117px"><span>Day 11</span></div>
+              <div class="px" style="left: 541px; top: 160px; width: 840px; height: 756px">
+                <div class="stack" style="padding: 56px 49px 42px">
+                  <h1 class="t56 display">A little house</h1>
+                  <p class="t24" style="margin-top: 14px">This day is closed. 27 drawings.</p>
+                  <ul class="podium t24" style="margin-top: 35px">
+                    <li>
+                      <span class="t32">2nd</span>
+                      <div class="pocket" style="--pu: 7px; margin: 7px"><span class="art" data-entry="0000000000044000004444000022220000212200002122000000000000000000" data-pal="house" style="width: 112px; height: 112px" role="img" aria-label="Second place drawing"></span></div>
+                      <span class="who">Player two</span>
+                      <span class="count"><span class="icon" data-icon="heart" style="width: 28px; height: 24px"></span>9</span>
+                    </li>
+                    <li>
+                      <span class="t40">1st</span>
+                      <div class="pocket" style="--pu: 10px; margin: 10px"><span class="art" data-entry="0000000000033000003333000011110000141100001411000000000000000000" data-pal="house" style="width: 160px; height: 160px" role="img" aria-label="First place drawing"></span></div>
+                      <span class="who">Player one</span>
+                      <span class="count"><span class="icon" data-icon="heart" style="width: 28px; height: 24px"></span>14</span>
+                    </li>
+                    <li>
+                      <span class="t32">3rd</span>
+                      <div class="pocket" style="--pu: 7px; margin: 7px"><span class="art" data-entry="0003000000333000033333000022200000242000002220000000000000000000" data-pal="house" style="width: 112px; height: 112px" role="img" aria-label="Third place drawing"></span></div>
+                      <span class="who">Player three</span>
+                      <span class="count"><span class="icon" data-icon="heart" style="width: 28px; height: 24px"></span>8</span>
+                    </li>
+                  </ul>
+                  <div class="grow"></div>
+                  <p class="t32">You placed 7th of 27.</p>
+                  <button class="px in btn primary t32" style="height: 112px; margin-top: 21px">Go to today's post</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="frame m" id="closed-m">
+            <img class="sky" src="/art/sky.png" alt="" /><img class="grass" src="/art/grass.png" alt="" />
+            <div class="px tab t16" style="right: 16px; top: 16px"><span>Day 11</span></div>
+            <div class="px" style="left: 16px; top: 64px; width: 358px; height: 496px">
+              <div class="stack" style="padding: 20px 16px 16px">
+                <h1 class="t32 display">A little house</h1>
+                <p class="t16" style="margin-top: 8px">This day is closed. 27 drawings.</p>
+                <ul class="podium t16" style="margin-top: 20px; gap: 8px; display: grid; grid-template-columns: 1fr 1.25fr 1fr">
+                  <li>
+                    <span class="t24">2nd</span>
+                    <div class="pocket" style="--pu: 5px; margin: 5px"><span class="art" data-entry="0000000000044000004444000022220000212200002122000000000000000000" data-pal="house" style="width: 72px; height: 72px" role="img" aria-label="Second place drawing"></span></div>
+                    <span class="who">Player two</span>
+                    <span class="count"><span class="icon" data-icon="heart" style="width: 21px; height: 18px"></span>9</span>
+                  </li>
+                  <li>
+                    <span class="t24">1st</span>
+                    <div class="pocket" style="--pu: 7px; margin: 7px"><span class="art" data-entry="0000000000033000003333000011110000141100001411000000000000000000" data-pal="house" style="width: 96px; height: 96px" role="img" aria-label="First place drawing"></span></div>
+                    <span class="who">Player one</span>
+                    <span class="count"><span class="icon" data-icon="heart" style="width: 21px; height: 18px"></span>14</span>
+                  </li>
+                  <li>
+                    <span class="t24">3rd</span>
+                    <div class="pocket" style="--pu: 5px; margin: 5px"><span class="art" data-entry="0003000000333000033333000022200000242000002220000000000000000000" data-pal="house" style="width: 72px; height: 72px" role="img" aria-label="Third place drawing"></span></div>
+                    <span class="who">Player three</span>
+                    <span class="count"><span class="icon" data-icon="heart" style="width: 21px; height: 18px"></span>8</span>
+                  </li>
+                </ul>
+                <div class="grow"></div>
+                <p class="t24" style="text-wrap: balance">You placed 7th of 27.</p>
+                <button class="px in btn primary t24" style="height: 60px; margin-top: 12px">Go to today's post</button>
+              </div>
+            </div>
+            <img src="/art/shadow.png" alt="" style="left: 150px; top: 700px; width: 90px; height: 27px" />
+            <img src="/art/star.png" alt="Your pet, Star" style="left: 141px; top: 602px; width: 108px; height: 108px" />
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const PALETTES = {
+        breakfast: ['#fff4c2', '#f2b24c', '#d9534f', '#5a3a22'],
+        house: ['#ffffff', '#f7a8b8', '#c0553f', '#4a3b52'],
+      };
+
+      // Pixel icons, drawn on the same one-pixel stroke grid as the owner's buttons.
+      const ICONS = {
+        heart: ['.##.##.', '#######', '#######', '.#####.', '..###..', '...#...'],
+        heartEmpty: ['.##.##.', '#..#..#', '#.....#', '.#...#.', '..#.#..', '...#...'],
+        undo: ['..#....', '.#.....', '######.', '.#....#', '..#...#', '......#', '...###.'],
+        erase: ['...###.', '..#..##', '.#..#.#', '#..#.#.', '#.#.#..', '.##....', '#######'],
+        more: ['...#...', '....#..', '######.', '....#..', '...#...'],
+        comment: ['.#####.', '#.....#', '#.....#', '#.....#', '.#####.', '..#....', '.#.....'],
+      };
+      const ICON_COLOR = { heart: 'var(--heart)', heartEmpty: 'var(--line)' };
+
+      function svg(w, h, rects) {
+        return `<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+      }
+      function iconSvg(name) {
+        const rows = ICONS[name];
+        let r = '';
+        rows.forEach((row, y) =>
+          [...row].forEach((ch, x) => {
+            if (ch === '#') r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${ICON_COLOR[name] ?? 'currentColor'}"/>`;
+          })
+        );
+        return svg(rows[0].length, rows.length, r);
+      }
+      function entrySvg(entry, pal) {
+        let r = '';
+        [...entry].forEach((ch, i) => {
+          if (ch !== '0') r += `<rect x="${i % 8}" y="${Math.floor(i / 8)}" width="1" height="1" fill="${pal[ch - 1]}"/>`;
+        });
+        return svg(8, 8, r);
+      }
+
+      document.querySelectorAll('[data-icon]').forEach((el) => (el.innerHTML = iconSvg(el.dataset.icon)));
+      document.querySelectorAll('[data-entry]').forEach((el) => (el.innerHTML = entrySvg(el.dataset.entry, PALETTES[el.dataset.pal])));
+      document.querySelectorAll('[data-board]').forEach((el) => {
+        const pal = PALETTES[el.dataset.pal];
+        el.innerHTML = [...el.dataset.board]
+          .map((ch) => (ch === '0' ? '<i></i>' : `<i data-on style="background:${pal[ch - 1]}"></i>`))
+          .join('');
+      });
+
+      // Twelve sample drawings for the gallery. Made for this mockup, not player entries.
+      const SAMPLES = [
+        '0000000000111000011221000112210000111000000000000343434000000000',
+        '0000000000000000002222000021120000211200002222000004400000000000',
+        '0000000000030000001111000222222004444440022222200000000000000000',
+        '0000000000100100001221000012210000122100001221000011110000000000',
+        '0000000000222200023333200233332000222200000000000000000000000000',
+        '0000000000000000002220000211120002101200021112000022200000000000',
+        '0000000001110000012100000111003300000333000033300000000000000000',
+        '0000000000000000003232001111111101111110004444000000000000000000',
+        '0000000000000004000000110000011001001100001110000000000000000000',
+        '0000400000040400004000400330033003300330000000000000000000000000',
+        '0000000000011000000110000011110000133100001111000000000000000000',
+        '0000000000040000003330000333330000000000000000000000000000000000',
+      ];
+      const HEARTED = new Set([1, 6]);
+      // Pocket positions come from the panel art: 4x4 dark pockets at these native pixels.
+      const GAL = { d: { x: 526, y: 146, s: 28 }, m: { x: 9, y: 76, s: 12 } };
+      document.querySelectorAll('[data-gallery]').forEach((el) => {
+        const g = GAL[el.dataset.gallery];
+        el.innerHTML = SAMPLES.map((entry, i) => {
+          const left = g.x + (3 + 7 * (i % 4)) * g.s;
+          const top = g.y + (4 + 7 * Math.floor(i / 4)) * g.s;
+          const hearted = HEARTED.has(i);
+          return `<button class="entry" style="left:${left}px;top:${top}px;width:${4 * g.s}px;height:${4 * g.s}px"
+            aria-label="Drawing ${i + 1}${hearted ? ', hearted' : '. Give a heart'}" aria-pressed="${hearted}">
+            ${entrySvg(entry, PALETTES.breakfast)}${hearted ? `<span class="badge">${iconSvg('heart')}</span>` : ''}</button>`;
+        }).join('');
+      });
+
+      // ?only=start-d shows one frame at its real size, for screenshots.
+      const only = new URLSearchParams(location.search).get('only');
+      if (only) {
+        document.body.classList.add('only');
+        document.querySelectorAll('.frame').forEach((f) => {
+          if (f.id !== only) (f.closest('.fit') ?? f).classList.add('hide');
+        });
+        document.querySelectorAll('.shot').forEach((s) => {
+          if (!s.querySelector('#' + CSS.escape(only))) s.classList.add('hide');
+        });
+      } else {
+        // Shrink the desktop frames to fit the window. Phone frames stay at real size.
+        const fit = () => {
+          const z = Math.min(1, (document.querySelector('.page').clientWidth - 48) / 1440);
+          document.querySelectorAll('.fit').forEach((el) => (el.style.zoom = z));
+        };
+        fit();
+        addEventListener('resize', fit);
+      }
+    </script>
+  </body>
+</html>
