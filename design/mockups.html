@@ -474,6 +474,66 @@
         background: none;
         cursor: pointer;
       }
+      /* The one line meter */
+      .meter.big {
+        height: calc(3 * var(--u));
+      }
+      .meter.big b {
+        background: var(--ink);
+      }
+
+      /* Color picker: a square for light and strength, a strip for hue */
+      .sv {
+        position: relative;
+        cursor: crosshair;
+        background:
+          linear-gradient(to top, #000, rgba(0, 0, 0, 0)),
+          linear-gradient(to right, #fff, hsl(var(--h) 100% 50%));
+      }
+      .hue {
+        position: relative;
+        cursor: ns-resize;
+        background: linear-gradient(to bottom, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+      }
+      .hue.flat {
+        cursor: ew-resize;
+        background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+      }
+      .knob {
+        position: absolute;
+        width: calc(3 * var(--k));
+        height: calc(3 * var(--k));
+        translate: -50% -50%;
+        border: var(--k) solid #fff;
+        box-shadow: 0 0 0 var(--k) var(--ink);
+      }
+      .hue .knob {
+        left: 50%;
+        width: calc(100% + 2 * var(--k));
+        height: calc(3 * var(--k));
+      }
+      .hue.flat .knob {
+        left: auto;
+        top: 50%;
+        width: calc(3 * var(--k));
+        height: calc(100% + 2 * var(--k));
+      }
+      .used {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--u);
+      }
+      .used .chip {
+        border: 0;
+        cursor: pointer;
+        --edge-hi: var(--line);
+      }
+      .used .chip[aria-pressed='true'] {
+        --edge-hi: var(--ink);
+        --edge-lo: var(--ink);
+        translate: 0 calc(-1 * var(--u));
+      }
+
       .entry.paper {
         background: var(--paper);
       }
@@ -548,7 +608,7 @@
           Five screens for the daily loop, each at desktop size (1440 x 1024, laid out like
           your Figma frames) and at phone size (390 x 760). The sky, grass, bush, shadow,
           pets, nameplate, home button, and waffle panel are your art, exported from Figma
-          and untouched. Everything else is new and needs your approval. Revised: drawing is now freehand, with smooth lines and a meter for each color.
+          and untouched. Everything else is new and needs your approval. Revised: drawing is now freehand, in any color you pick, with one line meter shared by all colors.
         </p>
         <p>
           The drawings and player names here are samples made for this page. They are not
@@ -585,12 +645,8 @@
               <div class="px" style="left: 541px; top: 160px; width: 840px; height: 756px">
                 <div class="stack" style="padding: 56px 49px 42px">
                   <h1 class="t80 display">Draw a breakfast</h1>
-                  <p class="t24" style="margin-top: 42px">Three colors today. Each one runs out.</p>
-                  <ul class="swatches" style="margin-top: 21px">
-                    <li><i class="px in chip" style="--fill: #d2700f"></i><span class="meter" style="--c: #d2700f; --left: 87%; width: 98px"><b></b></span></li>
-                    <li><i class="px in chip" style="--fill: #c8403c"></i><span class="meter" style="--c: #c8403c; --left: 63%; width: 98px"><b></b></span></li>
-                    <li><i class="px in chip" style="--fill: #5a3a22"></i><span class="meter" style="--c: #5a3a22; --left: 100%; width: 98px"><b></b></span></li>
-                  </ul>
+                  <p class="t24" style="margin-top: 42px">Any colors you like. One line meter for all of them.</p>
+                  <span class="meter big" style="--left: 100%; margin-top: 21px; display: block" role="img" aria-label="Today's line meter"><b></b></span>
                   <div class="grow"></div>
                   <button class="px in btn primary t56" style="height: 126px">Play</button>
                   <p class="meta t24" style="margin-top: 28px">
@@ -610,12 +666,8 @@
             <div class="px" style="left: 16px; top: 364px; width: 358px; height: 380px">
               <div class="stack" style="padding: 20px 16px 16px">
                 <h1 class="t40 display">Draw a breakfast</h1>
-                <p class="t16" style="margin-top: 16px">Three colors today. Each one runs out.</p>
-                <ul class="swatches" style="margin-top: 8px">
-                    <li><i class="px in chip" style="--fill: #d2700f"></i><span class="meter" style="--c: #d2700f; --left: 87%; width: 56px"><b></b></span></li>
-                    <li><i class="px in chip" style="--fill: #c8403c"></i><span class="meter" style="--c: #c8403c; --left: 63%; width: 56px"><b></b></span></li>
-                    <li><i class="px in chip" style="--fill: #5a3a22"></i><span class="meter" style="--c: #5a3a22; --left: 100%; width: 56px"><b></b></span></li>
-                  </ul>
+                <p class="t16" style="margin-top: 16px">Any colors you like. One line meter for all of them.</p>
+                <span class="meter big" style="--left: 100%; margin-top: 10px; display: block" role="img" aria-label="Today's line meter"><b></b></span>
                 <div class="grow"></div>
                 <button class="px in btn primary t32" style="height: 64px">Play</button>
                 <p class="meta t16" style="margin-top: 12px">
@@ -631,10 +683,12 @@
       <section class="shot" id="draw">
         <h2>2. Draw</h2>
         <p>
-          Pick a color and draw freehand on the paper. Each color has its own line meter,
-          which drains as you draw. The eraser removes a whole line and gives its length
-          back to that color. Shown mid-drawing with red selected. The meters here are
-          worked out from the lines on the paper. Colors and meter sizes change every day.
+          Draw freehand on the paper in any color. The square picks how light and how
+          strong the color is, the strip picks the hue, and the chips are the colors
+          already used in this drawing, for getting an exact color back. One line meter
+          drains as you draw, whatever the color. The eraser removes a whole line and
+          gives its length back. Shown mid-drawing. The meter is worked out from the
+          lines on the paper. The meter's size changes every day.
         </p>
         <div class="pair">
           <div class="fit">
@@ -647,19 +701,18 @@
               <div class="px" style="left: 60px; top: 190px; width: 448px; height: 778px">
                 <div class="stack" style="padding: 42px 28px 28px">
                   <h1 class="t40 display">A breakfast</h1>
-                  <div class="t24" style="display: grid; gap: 14px; margin-top: 28px">
-                    <button class="px in pick" aria-pressed="false" style="--c: #d2700f">
-                      <span class="block"></span>
-                      <span class="body"><span>Orange</span><span class="meter" data-meter="0"><b></b></span></span>
-                    </button>
-                    <button class="px in pick" aria-pressed="true" style="--c: #c8403c">
-                      <span class="block"></span>
-                      <span class="body"><span>Red</span><span class="meter" data-meter="1"><b></b></span></span>
-                    </button>
-                    <button class="px in pick" aria-pressed="false" style="--c: #5a3a22">
-                      <span class="block"></span>
-                      <span class="body"><span>Brown</span><span class="meter" data-meter="2"><b></b></span></span>
-                    </button>
+                  <div style="display: grid; grid-template-columns: 1fr 49px; gap: 14px; margin-top: 28px; --k: 4px">
+                    <div class="px in even" role="slider" aria-label="Light and strength" tabindex="0">
+                      <div class="sv" style="--h: 2; height: 182px"><i class="knob" style="left: 70%; top: 22%"></i></div>
+                    </div>
+                    <div class="px in even" role="slider" aria-label="Hue" tabindex="0">
+                      <div class="hue" style="height: 182px"><i class="knob" style="top: 2%"></i></div>
+                    </div>
+                  </div>
+                  <div class="used" style="margin-top: 21px">
+                    <button class="px in chip" style="--fill: #c8403c; width: 63px; height: 63px" aria-label="Red, in use" aria-pressed="true"></button>
+                    <button class="px in chip" style="--fill: #f2a81d; width: 63px; height: 63px" aria-label="Yellow" aria-pressed="false"></button>
+                    <button class="px in chip" style="--fill: #5a3a22; width: 63px; height: 63px" aria-label="Brown" aria-pressed="false"></button>
                   </div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px">
                     <button class="px in btn t24" style="height: 77px">
@@ -674,8 +727,15 @@
                   <button class="px in btn primary t40" style="height: 98px; margin-top: 21px">Submit</button>
                 </div>
               </div>
-              <div class="px board" style="left: 588px; top: 139px">
+              <div class="px board" style="left: 588px; top: 104px">
                 <span class="sheet" style="width: 704px; height: 704px" data-entry="wip" data-pal="breakfast" role="img" aria-label="Your drawing so far"></span>
+              </div>
+              <div class="px" style="left: 588px; top: 864px; width: 746px; height: 84px">
+                <div class="t24" style="display: grid; grid-template-columns: auto 1fr auto; gap: 21px; align-items: center; height: 100%; padding: 0 28px">
+                  <span>Line left</span>
+                  <span class="meter big" data-meter><b></b></span>
+                  <span data-left></span>
+                </div>
               </div>
             </div>
           </div>
@@ -687,24 +747,30 @@
             <div class="px" style="left: 72px; top: 16px; width: 302px; height: 44px">
               <h1 class="t24 display" style="padding: 3px 12px 0">A breakfast</h1>
             </div>
-            <div class="px board" style="left: 19px; top: 72px">
+            <div class="px board" style="left: 19px; top: 68px">
               <span class="sheet" style="width: 336px; height: 336px" data-entry="wip" data-pal="breakfast" role="img" aria-label="Your drawing so far"></span>
             </div>
-            <div style="position: absolute; left: 19px; top: 448px; width: 352px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px">
-              <button class="px in pick col" aria-pressed="false" style="--c: #d2700f" aria-label="Orange">
-                <span class="block"></span>
-                <span class="body"><span class="meter" data-meter="0"><b></b></span></span>
-              </button>
-              <button class="px in pick col" aria-pressed="true" style="--c: #c8403c" aria-label="Red">
-                <span class="block"></span>
-                <span class="body"><span class="meter" data-meter="1"><b></b></span></span>
-              </button>
-              <button class="px in pick col" aria-pressed="false" style="--c: #5a3a22" aria-label="Brown">
-                <span class="block"></span>
-                <span class="body"><span class="meter" data-meter="2"><b></b></span></span>
-              </button>
+            <div class="px" style="left: 19px; top: 428px; width: 352px; height: 40px">
+              <div class="t16" style="display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; height: 100%; padding: 0 12px">
+                <span>Line left</span>
+                <span class="meter big" data-meter><b></b></span>
+                <span data-left></span>
+              </div>
             </div>
-            <div style="position: absolute; left: 19px; top: 540px; width: 352px; display: grid; grid-template-columns: 60px 60px 1fr; gap: 8px">
+            <div class="px" style="left: 19px; top: 476px; width: 352px; height: 124px">
+              <div style="display: grid; grid-template-columns: 1fr 96px; gap: 10px; height: 100%; padding: 10px; --k: 3px">
+                <div style="display: grid; grid-template-rows: 1fr 24px; gap: 10px">
+                  <div class="sv" style="--h: 2" role="slider" aria-label="Light and strength" tabindex="0"><i class="knob" style="left: 70%; top: 22%"></i></div>
+                  <div class="hue flat" role="slider" aria-label="Hue" tabindex="0"><i class="knob" style="left: 2%"></i></div>
+                </div>
+                <div class="used" style="align-content: start">
+                  <button class="px in chip" style="--fill: #c8403c; width: 44px; height: 44px" aria-label="Red, in use" aria-pressed="true"></button>
+                    <button class="px in chip" style="--fill: #f2a81d; width: 44px; height: 44px" aria-label="Yellow" aria-pressed="false"></button>
+                    <button class="px in chip" style="--fill: #5a3a22; width: 44px; height: 44px" aria-label="Brown" aria-pressed="false"></button>
+                </div>
+              </div>
+            </div>
+            <div style="position: absolute; left: 19px; top: 608px; width: 352px; display: grid; grid-template-columns: 60px 60px 1fr; gap: 8px">
               <button class="px in btn" style="height: 60px" aria-label="Undo">
                 <span class="icon" data-icon="undo" style="width: 28px; height: 28px"></span>
               </button>
@@ -713,7 +779,7 @@
               </button>
               <button class="px in btn primary t32" style="height: 60px">Submit</button>
             </div>
-            <div class="px" style="left: 19px; top: 616px; width: 352px">
+            <div class="px" style="left: 19px; top: 676px; width: 352px">
               <p class="t16" style="padding: 8px 12px">Your drawing cannot be changed after you submit.</p>
             </div>
           </div>
@@ -955,11 +1021,11 @@
 
     <script>
       const PALETTES = {
-        breakfast: ['#d2700f', '#c8403c', '#5a3a22'],
-        house: ['#d6588a', '#a8452c', '#3d3247'],
+        breakfast: ['#f2a81d', '#c8403c', '#5a3a22', '#5b9bd5'],
+        house: ['#e77fa6', '#b24a30', '#3d3247'],
       };
-      // Line meter per color for the sample day, in paper units (the paper is 256 wide).
-      const BUDGET = [520, 380, 600];
+      // The sample day's one line meter, in paper units (the paper is 256 wide).
+      const BUDGET = 1400;
 
       // Pixel icons, drawn on the same one-pixel stroke grid as the owner's buttons.
       const ICONS = {
@@ -1027,18 +1093,19 @@
         return p;
       };
       const S = (c, p) => ({ c, p });
-      // Colors: 0 orange, 1 red, 2 brown (breakfast). 0 pink, 1 brick, 2 plum (house).
+      // Sample colors: 0 yellow, 1 red, 2 brown, 3 blue (breakfast). 0 pink, 1 brick, 2 plum (house).
+      // In the game each line carries its own hex color. These indexes are only for this page.
       const DRAWINGS = {
         egg: [S(2, loop(128, 104, 78, 60)), S(0, loop(136, 104, 26, 24)), S(0, loop(136, 104, 11, 10, 10)), S(1, wave(48, 208, 196, 9, 3)), S(1, wave(48, 208, 222, 9, 3))],
         wip: [S(2, loop(128, 104, 78, 60)), S(0, loop(136, 104, 26, 24)), S(1, wave(48, 150, 196, 9, 2))],
         toast: [S(2, poly([70, 74], [100, 56], [156, 56], [186, 74], [188, 196], [68, 196], [70, 74])), S(0, poly([108, 112], [150, 110], [152, 150], [106, 152], [108, 112])), S(0, poly([116, 124], [142, 138]))],
         pancakes: [S(0, loop(128, 104, 72, 17)), S(0, loop(128, 138, 78, 18)), S(0, loop(128, 174, 84, 19)), S(2, poly([76, 100], [100, 84], [128, 92], [152, 82], [180, 100])), S(2, poly([156, 96], [158, 132])), S(1, loop(128, 66, 11, 11, 10))],
-        juice: [S(2, poly([86, 62], [98, 206], [158, 206], [170, 62])), S(0, poly([92, 110], [164, 110])), S(0, poly([94, 134], [162, 134])), S(0, poly([96, 158], [160, 158])), S(0, poly([98, 182], [158, 182])), S(1, poly([156, 28], [130, 150]))],
-        coffee: [S(2, poly([66, 112], [78, 204], [158, 204], [170, 112], [66, 112])), S(2, arc(172, 152, 28, -80, 80)), S(1, poly([100, 92], [108, 76], [98, 60], [106, 44])), S(1, poly([134, 92], [142, 76], [132, 60], [140, 44]))],
+        juice: [S(3, poly([86, 62], [98, 206], [158, 206], [170, 62])), S(0, poly([92, 110], [164, 110])), S(0, poly([94, 134], [162, 134])), S(0, poly([96, 158], [160, 158])), S(0, poly([98, 182], [158, 182])), S(1, poly([156, 28], [130, 150]))],
+        coffee: [S(2, poly([66, 112], [78, 204], [158, 204], [170, 112], [66, 112])), S(2, arc(172, 152, 28, -80, 80)), S(3, poly([100, 92], [108, 76], [98, 60], [106, 44])), S(3, poly([134, 92], [142, 76], [132, 60], [140, 44]))],
         donut: [S(2, loop(128, 128, 78, 78, 26)), S(2, loop(128, 128, 26, 26, 12)), S(1, poly([90, 84], [102, 94])), S(1, poly([160, 76], [170, 90])), S(1, poly([176, 150], [188, 140])), S(0, poly([84, 150], [92, 164])), S(0, poly([120, 186], [136, 190])), S(0, poly([150, 170], [160, 180]))],
         banana: [S(0, arc(128, 20, 150, 40, 140, 16)), S(0, arc(128, -30, 170, 55, 125, 12)), S(2, poly([238, 112], [246, 100])), S(2, poly([14, 118], [8, 108]))],
         cherries: [S(1, loop(92, 172, 30, 30)), S(1, loop(170, 182, 30, 30)), S(2, poly([96, 142], [112, 96], [140, 56])), S(2, poly([168, 152], [156, 100], [140, 56])), S(0, poly([140, 56], [168, 44], [186, 56]))],
-        bowl: [S(2, poly([44, 120], [212, 120])), S(2, arc(128, 120, 84, 0, 180, 16)), S(0, loop(92, 104, 9, 9, 8)), S(0, loop(122, 98, 9, 9, 8)), S(0, loop(152, 104, 9, 9, 8)), S(0, loop(180, 100, 9, 9, 8)), S(1, loop(108, 84, 7, 7, 8)), S(1, loop(166, 82, 7, 7, 8))],
+        bowl: [S(3, poly([44, 120], [212, 120])), S(3, arc(128, 120, 84, 0, 180, 16)), S(0, loop(92, 104, 9, 9, 8)), S(0, loop(122, 98, 9, 9, 8)), S(0, loop(152, 104, 9, 9, 8)), S(0, loop(180, 100, 9, 9, 8)), S(1, loop(108, 84, 7, 7, 8)), S(1, loop(166, 82, 7, 7, 8))],
         sausage: [S(2, loop(98, 104, 56, 44)), S(0, loop(104, 104, 18, 17, 12)), S(1, loop(168, 184, 58, 17))],
         waffle: [S(2, poly([64, 64], [192, 60], [196, 192], [60, 196], [64, 64])), S(0, poly([106, 66], [104, 192])), S(0, poly([150, 64], [150, 192])), S(0, poly([64, 106], [194, 104])), S(0, poly([62, 150], [194, 150]))],
         berry: [S(1, poly([128, 214], [72, 130], [84, 92], [128, 104], [172, 92], [184, 130], [128, 214])), S(2, poly([128, 104], [128, 70])), S(2, poly([128, 84], [104, 66])), S(2, poly([128, 84], [154, 64])), S(0, poly([108, 136], [112, 142])), S(0, poly([146, 134], [150, 140])), S(0, poly([126, 164], [130, 170]))],
@@ -1064,15 +1131,15 @@
       document.querySelectorAll('[data-icon]').forEach((el) => (el.innerHTML = iconSvg(el.dataset.icon)));
       document.querySelectorAll('[data-entry]').forEach((el) => (el.innerHTML = drawingSvg(DRAWINGS[el.dataset.entry], PALETTES[el.dataset.pal])));
 
-      // The Draw screen's meters show what is really left after the lines on its paper.
-      const used = inkUsed(DRAWINGS.wip, BUDGET.length);
+      // The Draw screen's meter shows what is really left after the lines on its paper.
+      const usedTotal = inkUsed(DRAWINGS.wip, 4).reduce((a, b) => a + b, 0);
+      const leftPct = Math.max(0, Math.round((1 - usedTotal / BUDGET) * 100));
       document.querySelectorAll('[data-meter]').forEach((el) => {
-        const i = Number(el.dataset.meter);
-        const pct = Math.max(0, Math.round((1 - used[i] / BUDGET[i]) * 100));
-        el.style.setProperty('--left', pct + '%');
-        const pick = el.closest('.pick');
-        pick.setAttribute('aria-label', `${pick.textContent.trim() || pick.getAttribute('aria-label')}, ${pct} percent left`);
+        el.style.setProperty('--left', leftPct + '%');
+        el.setAttribute('role', 'img');
+        el.setAttribute('aria-label', `Line left: ${leftPct} percent`);
       });
+      document.querySelectorAll('[data-left]').forEach((el) => (el.textContent = leftPct + '%'));
 
       // Twelve other players' drawings for the gallery (samples).
       const SAMPLES = ['toast', 'pancakes', 'juice', 'coffee', 'donut', 'banana', 'cherries', 'bowl', 'sausage', 'waffle', 'berry', 'eggs'];

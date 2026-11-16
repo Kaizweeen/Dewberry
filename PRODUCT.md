@@ -10,13 +10,13 @@ Redditors who meet the day's post in a subreddit feed and play inside the post, 
 
 ## Product Purpose
 
-A daily drawing game for redditors. Draw the day's prompt freehand in about two minutes, with a few colors that each run out, give five hearts to other players' drawings, and the day's top three drawings become food, clothes, and scenery for players' pets. (Confirmed by the owner on 2026-11-16. The owner changed drawing from an 8x8 pixel grid to freehand lines the same day.)
+A daily drawing game for redditors. Draw the day's prompt freehand in about two minutes, in any colors, with one line meter that runs out, give five hearts to other players' drawings, and the day's top three drawings become food, clothes, and scenery for players' pets. (Confirmed by the owner on 2026-11-16. The owner changed drawing from an 8x8 pixel grid to freehand lines the same day, then chose free colors with one shared line meter.)
 
 Success is a player coming back tomorrow: to see how their drawing placed, to collect what their pet earned, and to draw again.
 
 ## Positioning
 
-The rewards are made by the players. Each day's winning drawings become the items every pet can own, so the community's own art fills the game over time. A fixed kit (two to four colors, a line meter for each, one square sheet of paper) keeps every entry comparable and quick. The kit changes every day.
+The rewards are made by the players. Each day's winning drawings become the items every pet can own, so the community's own art fills the game over time. A fixed kit (one line meter, one square sheet of paper) keeps every entry comparable and quick. Colors are the player's own choice. The meter's size changes every day.
 
 ## Operating Context
 
@@ -27,7 +27,7 @@ The rewards are made by the players. Each day's winning drawings become the item
 
 ## Capabilities and Constraints
 
-- Drawing is freehand: smooth lines on paper. Each color has its own line meter that drains as the player draws. The eraser removes a whole line and gives its length back.
+- Drawing is freehand: smooth lines on paper, in any color from a built-in color picker. One line meter drains as the player draws, whatever the color. The eraser removes a whole line and gives its length back.
 - One final entry per player per day. A drawing needs a minimum amount of line. Entries cannot be edited after submitting.
 - Five hearts per player per day, one per entry, never for your own entry, only after submitting.
 - Ranking is by hearts, then by earlier submission. The top 25 percent and the top three matter for rewards.
@@ -61,6 +61,6 @@ The rewards are made by the players. Each day's winning drawings become the item
 
 ## Accessibility & Inclusion
 
-- A day's colors must be distinguishable by lightness alone, each must stand out against the paper, and each has a name for screen readers.
+- Players choose their own colors, so a drawing may rely on color differences that some viewers cannot see, and very pale lines are hard to see on the paper. These are known limits of free color choice.
 - Drawing must work by touch and mouse. Freehand drawing needs a pointer, so a keyboard-only player can use every other control but cannot draw. This is a known limit.
 - Text and controls must meet WCAG AA contrast over the pastel backdrop.
