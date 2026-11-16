@@ -98,6 +98,23 @@ describe('rollover', () => {
       postId: 'post2',
     });
   });
+
+  it('takes over a claim left behind by a call that died, but not a fresh one', async () => {
+    const store = await dayOne();
+    // A call claimed day 2 at hour 24 and never finished.
+    await store.hSet(keys.rollClaim, { '2': String(24 * HOUR) });
+    expect(
+      await rollover(store, {
+        now: 24 * HOUR + 60_000,
+        force: true,
+        createPost,
+      })
+    ).toBeNull();
+    expect(await currentDay(store)).toBe(1);
+    expect(
+      await rollover(store, { now: 25 * HOUR, force: true, createPost })
+    ).toEqual({ day: 2, postId: 'post2' });
+  });
 });
 
 describe('finalizeDay and getResults', () => {

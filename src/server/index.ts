@@ -52,7 +52,9 @@ api.post(
     const body = await c.req
       .json<{ entry?: unknown } | null>()
       .catch(() => null);
-    const username = (await reddit.getCurrentUsername()) ?? 'someone';
+    // Entries are shown with their maker's name, so never invent one.
+    const username = context.username ?? (await reddit.getCurrentUsername());
+    if (!username) return c.json({ error: 'Log in to Reddit to play.' }, 401);
     const result = await submitEntry(store, {
       day: me.day,
       userId: me.userId,

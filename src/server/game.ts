@@ -195,6 +195,8 @@ export async function heartEntry(
 }
 
 export const MIN_ROLL_GAP_MS = 12 * 60 * 60 * 1000;
+/** How long a rollover claim is honored before another call may take it over. */
+const STALE_CLAIM_MS = 10 * 60 * 1000;
 
 export async function finalizeDay(store: Store, day: number): Promise<void> {
   if (day < 1) return;
@@ -280,7 +282,17 @@ export async function rollover(
   await finalizeDay(store, closing);
   const day = closing + 1;
   const won = await store.hSetNX(keys.rollClaim, String(day), String(a.now));
-  if (!won) return null;
+  if (!won) {
+    // A claim this old belongs to a call that died mid-rollover. Take it over,
+    // or the game would never roll again.
+    // ponytail: the takeover is not atomic. Two calls hitting the same stale claim
+    // at once could both post. Use a Redis transaction if that ever happens.
+    const claimedAt = Number(
+      (await store.hGet(keys.rollClaim, String(day))) ?? a.now
+    );
+    if (a.now - claimedAt < STALE_CLAIM_MS) return null;
+    await store.hSet(keys.rollClaim, { [String(day)]: String(a.now) });
+  }
   let postId: string;
   try {
     postId = await a.createPost(day);
