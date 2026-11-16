@@ -33,7 +33,7 @@ The rewards are made by the players. Each day's winning drawings become the item
 - Ranking is by hearts, then by earlier submission. The top 25 percent and the top three matter for rewards.
 - Three pets: Star, Slime, Angel. The player picks one at the start. The others unlock at streaks of 7 and 30 days.
 - No content is generated at runtime. Prompts and palettes are hand authored. No placeholder or seeded entries are ever shown.
-- Built so far: the daily loop's rules and server, and the freehand drawing logic. Not built yet: screens, pets, inventory, moderation tools. Not yet run on Reddit.
+- Built so far: the whole daily loop (Start, Draw, Gallery, Result, and the closed day), played by the owner in a Reddit test subreddit on 2026-11-16. Not built yet: pets beyond Star standing in the scene, the inventory, rewards, and moderation tools. Not yet tried in the Reddit phone app.
 - The game is called Dewberry (chosen by the owner on 2026-11-16).
 - Undecided: whether the four dot groups on the inventory panel are tabs (the working assumption is Food, Clothes, Scenery, Pets).
 

@@ -115,7 +115,7 @@ requestExpandedMode(e.nativeEvent, 'game'); // from a click in the inline view
 
 ## 10. Viewport sizes
 
-First playtest, 2026-11-16: the expanded view measured **375 x 596**. The device is not recorded yet, and the inline view and the other device are still unmeasured. The height is the tight limit: screens must fit in about 596 px without scrolling.
+First playtest, 2026-11-16: the expanded view measured **375 x 596** in a desktop browser. The inline view and the phone app are still unmeasured. The height is the tight limit: screens must fit in about 596 px without scrolling.
 
 ## 11. Current username (template)
 
@@ -143,7 +143,9 @@ There is no local dev port: the playtest runs on reddit.com.
 - The install trigger created the day 1 post.
 - `GET /api/day` returned 200 with the day, the prompt, the meter, and the viewer's state, so `context.userId` and `context.postId` are set inside `/api` requests.
 
+- Later the same day the owner played the built screens in the day 1 post in a desktop browser and reported that the game works.
+
 ## Still open
 
-- Which device gave 375 x 596, the inline view size, and the sizes on the other device (desktop or phone app).
+- The inline view size, the sizes in the Reddit phone app, and whether the expanded view grows when the desktop browser window is larger.
 - Whether Reddit shows a toast when a menu endpoint answers with status 500.
