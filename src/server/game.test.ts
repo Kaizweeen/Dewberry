@@ -3,7 +3,9 @@ import { getDayView, submitEntry } from './game';
 import { memoryStore } from './memoryStore';
 import { keys, type Store } from './store';
 
-export const pad = (s: string) => s + '0'.repeat(64 - s.length);
+/** A valid entry: one horizontal line of the given length in the given color. */
+export const lineEntry = (length = 60, color = '#333333') =>
+  JSON.stringify([{ c: color, p: [10, 10, 10 + length, 10] }]);
 
 /** A store already on the given day, with a post recorded for it. */
 export async function storeOnDay(day: number): Promise<Store> {
@@ -17,14 +19,14 @@ export const submit = (
   store: Store,
   day: number,
   userId: string,
-  cells = '1111',
+  entry = lineEntry(),
   now = 1000
 ) =>
   submitEntry(store, {
     day,
     userId,
     username: `name-${userId}`,
-    entry: pad(cells),
+    entry,
     now,
   });
 
@@ -37,24 +39,36 @@ describe('submitEntry', () => {
   it('stores a valid entry and starts a streak', async () => {
     expect(await submit(store, 1, 'u1')).toEqual({
       ok: true,
-      entry: pad('1111'),
+      entry: lineEntry(),
       streak: 1,
     });
-    expect(await store.hGet(keys.entries(1), 'u1')).toBe(pad('1111'));
+    expect(await store.hGet(keys.entries(1), 'u1')).toBe(lineEntry());
   });
 
   it('keeps the first entry when submitted twice', async () => {
-    await submit(store, 1, 'u1', '1111');
-    expect(await submit(store, 1, 'u1', '2222')).toEqual({
+    await submit(store, 1, 'u1', lineEntry(60));
+    expect(await submit(store, 1, 'u1', lineEntry(80))).toEqual({
       ok: true,
-      entry: pad('1111'),
+      entry: lineEntry(),
       streak: 1,
     });
     expect(await store.hLen(keys.entries(1))).toBe(1);
   });
 
   it('rejects an invalid entry and stores nothing', async () => {
-    const r = await submit(store, 1, 'u1', '111');
+    const r = await submit(store, 1, 'u1', lineEntry(10));
+    expect(r).toMatchObject({ ok: false, error: 'invalid' });
+    expect(await store.hLen(keys.entries(1))).toBe(0);
+  });
+
+  it('rejects an entry over the day budget and stores nothing', async () => {
+    const tooLong = JSON.stringify(
+      Array.from({ length: 8 }, (_, i) => ({
+        c: '#333333',
+        p: [10, 10 + i * 10, 210, 10 + i * 10],
+      }))
+    );
+    const r = await submit(store, 1, 'u1', tooLong);
     expect(r).toMatchObject({ ok: false, error: 'invalid' });
     expect(await store.hLen(keys.entries(1))).toBe(0);
   });
@@ -97,7 +111,8 @@ describe('getDayView', () => {
       streak: 0,
       heartsLeft: 5,
     });
-    expect(view.colors).toHaveLength(4);
+    expect(view.budget).toBe(1400);
+    expect(view).not.toHaveProperty('colors');
   });
 
   it('shows the player their entry and the entry count', async () => {
@@ -111,7 +126,7 @@ describe('getDayView', () => {
     });
     expect(view).toMatchObject({
       entryCount: 2,
-      myEntry: pad('1111'),
+      myEntry: lineEntry(),
       streak: 1,
     });
   });

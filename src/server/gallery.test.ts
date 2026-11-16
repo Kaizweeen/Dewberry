@@ -3,13 +3,14 @@ import { getGalleryPage, heartEntry, submitEntry } from './game';
 import { memoryStore } from './memoryStore';
 import { keys, type Store } from './store';
 
-const pad = (s: string) => s + '0'.repeat(64 - s.length);
+const lineEntry = (length = 60) =>
+  JSON.stringify([{ c: '#333333', p: [10, 10, 10 + length, 10] }]);
 const submit = (store: Store, userId: string) =>
   submitEntry(store, {
     day: 1,
     userId,
     username: `name-${userId}`,
-    entry: pad('1111'),
+    entry: lineEntry(),
     now: 1000,
   });
 

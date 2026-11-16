@@ -48,8 +48,6 @@ export async function getDayView(
     todayPostId: todayPostId ?? null,
     prompt: content.prompt,
     category: content.category,
-    colors: content.colors,
-    colorNames: content.colorNames,
     budget: content.budget,
     entryCount,
     myEntry: myEntry ?? null,
@@ -227,7 +225,6 @@ export async function finalizeDay(store: Store, day: number): Promise<void> {
     if (entry === undefined) continue;
     await store.hSet(keys.item(day, i + 1), {
       entry,
-      colors: JSON.stringify(content.colors),
       category: content.category,
       maker: names[id] ?? '',
       makerId: id,

@@ -10,7 +10,8 @@ import {
 import { memoryStore } from './memoryStore';
 import { keys, type Store } from './store';
 
-const pad = (s: string) => s + '0'.repeat(64 - s.length);
+const lineEntry = (length = 60) =>
+  JSON.stringify([{ c: '#333333', p: [10, 10, 10 + length, 10] }]);
 const HOUR = 60 * 60 * 1000;
 const createPost = async (day: number) => `post${day}`;
 
@@ -20,12 +21,17 @@ async function dayOne(): Promise<Store> {
   return store;
 }
 
-const submit = (store: Store, userId: string, now: number) =>
+const submit = (
+  store: Store,
+  userId: string,
+  now: number,
+  entry = lineEntry()
+) =>
   submitEntry(store, {
     day: 1,
     userId,
     username: `name-${userId}`,
-    entry: pad('1111'),
+    entry,
     now,
   });
 const heart = (store: Store, userId: string, targetId: string) =>
@@ -122,7 +128,7 @@ describe('finalizeDay and getResults', () => {
     const store = await dayOne();
     await submit(store, 'a', 100);
     await submit(store, 'b', 200);
-    await submit(store, 'c', 300);
+    await submit(store, 'c', 300, lineEntry(90));
     await submit(store, 'd', 400);
     await heart(store, 'a', 'c');
     await heart(store, 'b', 'c');
@@ -138,7 +144,7 @@ describe('finalizeDay and getResults', () => {
       [2, 'name-a', 1],
       [3, 'name-b', 1],
     ]);
-    expect(results.top[0]?.entry).toBe(pad('1111'));
+    expect(results.top[0]?.entry).toBe(lineEntry(90));
   });
 
   it('stores only as many items as there are entries', async () => {
