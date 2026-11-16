@@ -10,13 +10,13 @@ Redditors who meet the day's post in a subreddit feed and play inside the post, 
 
 ## Product Purpose
 
-A daily pixel drawing game for redditors. Draw the day's prompt on an 8x8 grid in about two minutes, give five hearts to other players' drawings, and the day's top three drawings become food, clothes, and scenery for players' pets. (Confirmed by the owner on 2026-11-16.)
+A daily drawing game for redditors. Draw the day's prompt freehand in about two minutes, with a few colors that each run out, give five hearts to other players' drawings, and the day's top three drawings become food, clothes, and scenery for players' pets. (Confirmed by the owner on 2026-11-16. The owner changed drawing from an 8x8 pixel grid to freehand lines the same day.)
 
 Success is a player coming back tomorrow: to see how their drawing placed, to collect what their pet earned, and to draw again.
 
 ## Positioning
 
-The rewards are made by the players. Each day's winning drawings become the items every pet can own, so the community's own art fills the game over time. A fixed kit (four colors, a pixel budget per color, one 8x8 canvas) keeps every entry comparable and quick.
+The rewards are made by the players. Each day's winning drawings become the items every pet can own, so the community's own art fills the game over time. A fixed kit (two to four colors, a line meter for each, one square sheet of paper) keeps every entry comparable and quick. The kit changes every day.
 
 ## Operating Context
 
@@ -27,12 +27,13 @@ The rewards are made by the players. Each day's winning drawings become the item
 
 ## Capabilities and Constraints
 
-- One final entry per player per day. Minimum 4 painted pixels. Entries cannot be edited after submitting.
+- Drawing is freehand: smooth lines on paper. Each color has its own line meter that drains as the player draws. The eraser removes a whole line and gives its length back.
+- One final entry per player per day. A drawing needs a minimum amount of line. Entries cannot be edited after submitting.
 - Five hearts per player per day, one per entry, never for your own entry, only after submitting.
 - Ranking is by hearts, then by earlier submission. The top 25 percent and the top three matter for rewards.
 - Three pets: Star, Slime, Angel. The player picks one at the start. The others unlock at streaks of 7 and 30 days.
 - No content is generated at runtime. Prompts and palettes are hand authored. No placeholder or seeded entries are ever shown.
-- Built so far: the daily loop's rules and server. Not built yet: screens, pets, inventory, moderation tools.
+- Built so far: the daily loop's rules and server, written for the earlier pixel grid. The entry rules, content, and canvas code are being reworked for freehand lines. Not built yet: screens, pets, inventory, moderation tools.
 - Undecided: the game's final name. "Grout" is a working title from an earlier idea and will be replaced.
 - Undecided: whether the four dot groups on the inventory panel are tabs (the working assumption is Food, Clothes, Scenery, Pets).
 
@@ -40,6 +41,7 @@ The rewards are made by the players. Each day's winning drawings become the item
 
 - The owner's Figma file is the visual authority and is never edited: https://www.figma.com/design/U5b3iV8Gsk5qgOEUDZAegB/Untitled?node-id=0-1
 - The pets, sky, grass, and waffle inventory panel are the owner's own pixel art and are used as drawn.
+- Players' drawings are smooth freehand lines, not pixel art. The contrast with the pixel scene is the owner's choice.
 - No em dashes or en dashes in any copy.
 
 ## Evidence on Hand
@@ -52,13 +54,13 @@ The rewards are made by the players. Each day's winning drawings become the item
 ## Product Principles
 
 1. Two minutes, every day. Nothing between opening the post and drawing should cost more than a tap.
-2. The drawing is the hero. Players' pixel art is shown large, crisp, and unaltered.
+2. The drawing is the hero. Players' drawings are shown large, on their paper, and unaltered.
 3. Honesty over polish. Never fake activity, entries, or results. Say plainly what is closed, missing, or still to come.
 4. Fair by construction. Everyone gets the same kit, the same number of hearts, and an equal chance to be seen.
 5. The pet is the reason to return. Rewards are visible on the pet, not buried in a list.
 
 ## Accessibility & Inclusion
 
-- A day's four colors must be distinguishable by lightness alone, and each has a name for screen readers.
-- The canvas must be usable by touch and mouse. Keyboard control of the canvas is planned.
+- A day's colors must be distinguishable by lightness alone, each must stand out against the paper, and each has a name for screen readers.
+- Drawing must work by touch and mouse. Freehand drawing needs a pointer, so a keyboard-only player can use every other control but cannot draw. This is a known limit.
 - Text and controls must meet WCAG AA contrast over the pastel backdrop.
