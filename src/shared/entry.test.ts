@@ -98,9 +98,23 @@ describe('parseEntry', () => {
         }))
       ),
     ],
-    ['a string that is too long', 'x'.repeat(MAX_ENTRY_CHARS + 1)],
   ])('rejects %s', (_name, input) => {
     expect(parseEntry(input)).toBeNull();
+  });
+
+  it('rejects a well-formed entry only because it is too long', () => {
+    // Within the line and point limits, so the character limit is the only rule it breaks.
+    const lines = (count: number) =>
+      JSON.stringify(
+        Array.from({ length: count }, () => ({
+          c: '#000000',
+          p: Array.from({ length: 28 }, () => 255),
+        }))
+      );
+    expect(lines(MAX_STROKES).length).toBeGreaterThan(MAX_ENTRY_CHARS);
+    expect(parseEntry(lines(MAX_STROKES))).toBeNull();
+    expect(lines(100).length).toBeLessThanOrEqual(MAX_ENTRY_CHARS);
+    expect(parseEntry(lines(100))).toHaveLength(100);
   });
 });
 
@@ -140,6 +154,16 @@ describe('validateEntry', () => {
   });
   it('rejects spaces in the JSON', () => {
     const s = JSON.stringify([{ c: '#000000', p: [0, 0, 60, 0] }], null, 1);
+    expect(validateEntry(s, 500)).toEqual({
+      ok: false,
+      reason: 'That drawing could not be read.',
+    });
+  });
+  it.each([
+    ['exponent notation', '[{"c":"#000000","p":[0,0,6e1,0]}]'],
+    ['negative zero', '[{"c":"#000000","p":[-0,0,60,0]}]'],
+    ['a repeated key', '[{"c":"#ffffff","c":"#000000","p":[0,0,60,0]}]'],
+  ])('rejects %s, which is not the compact form', (_name, s) => {
     expect(validateEntry(s, 500)).toEqual({
       ok: false,
       reason: 'That drawing could not be read.',
