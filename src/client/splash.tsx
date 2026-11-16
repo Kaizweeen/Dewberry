@@ -39,8 +39,8 @@ export function Splash() {
         alt=""
         style={{ position: 'relative', width: 96, height: 96 }}
       />
-      <h1 className="t40 display" style={{ position: 'relative' }}>
-        Dewberry
+      <h1 className="px in t40 display" style={{ padding: '6px 20px 10px' }}>
+        <span style={{ position: 'relative' }}>Dewberry</span>
       </h1>
       <button
         className="px in btn primary t24"
