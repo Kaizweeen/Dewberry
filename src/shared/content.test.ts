@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentForDay, DAYS, luminance } from './content';
+import { contentForDay, DAYS } from './content';
 
 describe('daily content', () => {
   it('has at least 7 days', () => {
@@ -11,27 +11,18 @@ describe('daily content', () => {
     (_n, d) => {
       expect(d.prompt.trim().length).toBeGreaterThan(0);
       expect(['food', 'clothes', 'scenery']).toContain(d.category);
-      expect(d.colors).toHaveLength(4);
-      for (const c of d.colors) expect(c).toMatch(/^#[0-9a-f]{6}$/);
-      expect(d.colorNames).toHaveLength(4);
-      for (const n of d.colorNames) expect(n.trim().length).toBeGreaterThan(0);
-      expect(d.budget).toHaveLength(4);
-      for (const b of d.budget) expect(Number.isInteger(b) && b > 0).toBe(true);
-      const total = d.budget.reduce((a, b) => a + b, 0);
-      expect(total).toBeGreaterThanOrEqual(24);
-      expect(total).toBeLessThanOrEqual(44);
+      expect(Number.isInteger(d.budget)).toBe(true);
+      expect(d.budget).toBeGreaterThanOrEqual(700);
+      expect(d.budget).toBeLessThanOrEqual(2000);
     }
   );
 
-  it.each(DAYS.map((d, i) => [i + 1, d] as const))(
-    'day %i colors differ in lightness',
-    (_n, d) => {
-      const l = d.colors.map(luminance).sort((a, b) => a - b);
-      for (let i = 1; i < l.length; i++) {
-        expect((l[i] ?? 0) - (l[i - 1] ?? 0)).toBeGreaterThanOrEqual(0.05);
-      }
-    }
-  );
+  it('never repeats the meter from the day before, including across the wrap', () => {
+    DAYS.forEach((d, i) => {
+      const before = DAYS[(i + DAYS.length - 1) % DAYS.length];
+      expect(d.budget).not.toBe(before?.budget);
+    });
+  });
 
   it('gives every category at least twice in any seven days', () => {
     for (let start = 0; start < DAYS.length; start++) {

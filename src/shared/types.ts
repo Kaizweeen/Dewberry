@@ -7,9 +7,7 @@ export type DayView = {
   todayPostId: string | null;
   prompt: string;
   category: Category;
-  colors: string[];
-  colorNames: string[];
-  budget: number[];
+  budget: number;
   entryCount: number;
   myEntry: string | null;
   myHearts: number;
