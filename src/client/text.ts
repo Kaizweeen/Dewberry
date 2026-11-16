@@ -45,6 +45,27 @@ export function claimItemsShown(total: number): {
   };
 }
 
+/** Pockets on one page of the waffle panel. */
+export const PER_PAGE = 12;
+
+/** How many pages `total` items need. An empty tab still has one page. */
+export function pageCount(total: number): number {
+  return Math.max(1, Math.ceil(total / PER_PAGE));
+}
+
+/** The items on page `page` (counting from 0). A page out of range is pulled back in. */
+export function pageSlice<T>(items: T[], page: number): T[] {
+  const p = Math.min(Math.max(page, 0), pageCount(items.length) - 1);
+  return items.slice(p * PER_PAGE, (p + 1) * PER_PAGE);
+}
+
+/** Why a locked pet cannot be picked yet, from how many pets the streak allows. */
+export function unlockLine(slots: number): string {
+  return slots >= 2
+    ? 'Reach a 30 day streak to unlock another pet.'
+    : 'Reach a 7 day streak to unlock another pet.';
+}
+
 /** The comments page of a post, from its t3_ id. */
 export function postUrl(postId: string): string {
   return `https://www.reddit.com/comments/${postId.replace(/^t3_/, '')}`;

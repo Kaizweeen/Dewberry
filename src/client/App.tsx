@@ -5,12 +5,13 @@ import { ClaimCard } from './screens/ClaimCard';
 import { Closed } from './screens/Closed';
 import { Draw } from './screens/Draw';
 import { Gallery } from './screens/Gallery';
+import { Inventory } from './screens/Inventory';
 import { PetPick } from './screens/PetPick';
 import { Result } from './screens/Result';
 import { Start } from './screens/Start';
 import { Stage } from './ui';
 
-type Screen = 'start' | 'draw' | 'gallery' | 'result' | 'closed';
+type Screen = 'start' | 'draw' | 'gallery' | 'result' | 'closed' | 'inventory';
 type Failure = { status: number; message: string };
 
 const toFailure = (err: unknown): Failure =>
@@ -151,6 +152,7 @@ export function App() {
             view={view}
             pet={pet}
             onPlay={() => setScreen('draw')}
+            onInventory={() => setScreen('inventory')}
             onPetChanged={(p: PetView) =>
               setView({
                 ...view,
@@ -200,6 +202,10 @@ export function App() {
             onGiveHearts={() => setScreen('gallery')}
           />
         );
+      case 'inventory':
+        // Back reloads the day, so the scene shows what changed. A claim card
+        // kept in state survives the reload (keepClaim never erases it).
+        return <Inventory onBack={load} />;
       case 'closed':
         return <Closed view={view} pet={pet} />;
     }

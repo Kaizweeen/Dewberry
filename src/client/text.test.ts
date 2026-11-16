@@ -1,5 +1,50 @@
 import { describe, expect, it } from 'vitest';
-import { claimItemsShown, claimLines, petLabel } from './text';
+import {
+  claimItemsShown,
+  claimLines,
+  pageCount,
+  pageSlice,
+  petLabel,
+  unlockLine,
+} from './text';
+
+describe('pageCount', () => {
+  it('keeps one page for an empty tab', () => {
+    expect(pageCount(0)).toBe(1);
+    expect(pageCount(12)).toBe(1);
+  });
+
+  it('adds a page after twelve items', () => {
+    expect(pageCount(13)).toBe(2);
+    expect(pageCount(24)).toBe(2);
+    expect(pageCount(25)).toBe(3);
+  });
+});
+
+describe('pageSlice', () => {
+  const items = Array.from({ length: 30 }, (_, i) => i);
+
+  it('cuts twelve at a time', () => {
+    expect(pageSlice(items, 0)).toEqual(items.slice(0, 12));
+    expect(pageSlice(items, 2)).toEqual(items.slice(24));
+  });
+
+  it('pulls a page out of range back in', () => {
+    expect(pageSlice(items, 9)).toEqual(items.slice(24));
+    expect(pageSlice(items, -1)).toEqual(items.slice(0, 12));
+    expect(pageSlice([], 3)).toEqual([]);
+  });
+});
+
+describe('unlockLine', () => {
+  it('names the 7 day streak while only one slot is open', () => {
+    expect(unlockLine(1)).toBe('Reach a 7 day streak to unlock another pet.');
+  });
+
+  it('names the 30 day streak after that', () => {
+    expect(unlockLine(2)).toBe('Reach a 30 day streak to unlock another pet.');
+  });
+});
 
 describe('petLabel', () => {
   it('capitalizes the pet id', () => {

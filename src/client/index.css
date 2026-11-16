@@ -453,6 +453,23 @@ body {
   outline: 4px solid var(--toast);
   outline-offset: 2px;
 }
+/* Inventory: the selected pocket lifts, a locked pet is dimmed. */
+.entry[aria-pressed='true'] {
+  translate: 0 -4px;
+  outline: 4px solid var(--toast);
+  outline-offset: 2px;
+}
+.entry.pet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.entry.pet img {
+  position: static;
+}
+.entry.locked img {
+  opacity: 0.35;
+}
 .entry .badge {
   position: absolute;
   right: -10%;
