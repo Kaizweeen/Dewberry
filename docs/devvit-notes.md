@@ -111,11 +111,11 @@ requestExpandedMode(e.nativeEvent, 'game'); // from a click in the inline view
 
 - Never use `window.location`. `window.alert` is unavailable: use `showToast` from `@devvit/web/client`.
 - The client fetches the server with plain `fetch('/api/...')`.
-- **Not verified:** whether `localStorage` persists inside the post web view. Check in the first playtest. Draft saving must fail soft (try/catch) either way.
+- `localStorage` works inside the post web view (first playtest, 2026-11-16: the check screen wrote and read a value). Draft saving still fails soft (try/catch).
 
 ## 10. Viewport sizes
 
-**Not verified.** The template and types do not state them. Measure in the first playtest (log `window.innerWidth` and `innerHeight` for the inline and expanded views, on desktop and in the phone app).
+First playtest, 2026-11-16: the expanded view measured **375 x 596**. The device is not recorded yet, and the inline view and the other device are still unmeasured. The height is the tight limit: screens must fit in about 596 px without scrolling.
 
 ## 11. Current username (template)
 
@@ -137,8 +137,13 @@ Node 24 or later is required (`.nvmrc` says 24.18.0; this machine has 24.17.0, w
 
 There is no local dev port: the playtest runs on reddit.com.
 
-## Still open (needs the owner's Reddit login)
+## First playtest (2026-11-16)
 
-- Run `npm run login` then `npm run dev` and confirm the sample post loads in a test subreddit.
-- Register the real app name and put it in `devvit.json`.
-- Items 9 (`localStorage`) and 10 (viewport sizes).
+- The app is registered as `dewberry-daily` and runs in the test subreddit `r/dewberry_daily_dev`.
+- The install trigger created the day 1 post.
+- `GET /api/day` returned 200 with the day, the prompt, the meter, and the viewer's state, so `context.userId` and `context.postId` are set inside `/api` requests.
+
+## Still open
+
+- Which device gave 375 x 596, the inline view size, and the sizes on the other device (desktop or phone app).
+- Whether Reddit shows a toast when a menu endpoint answers with status 500.
