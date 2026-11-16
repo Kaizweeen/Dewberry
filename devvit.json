@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
-  "name": "grout-daily",
+  "name": "dewberry",
   "post": {
     "dir": "dist/client",
     "entrypoints": {
@@ -20,7 +20,7 @@
   "menu": {
     "items": [
       {
-        "label": "Grout: force a new day",
+        "label": "Dewberry: force a new day",
         "description": "Close the current day and post the next one now",
         "location": "subreddit",
         "forUserType": "moderator",

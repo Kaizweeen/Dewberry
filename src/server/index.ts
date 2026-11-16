@@ -100,7 +100,7 @@ api.get(
 
 async function createPost(day: number): Promise<string> {
   const post = await reddit.submitCustomPost({
-    title: `Grout day ${day}: ${contentForDay(day).prompt}`,
+    title: `Dewberry day ${day}: ${contentForDay(day).prompt}`,
   });
   return post.id;
 }

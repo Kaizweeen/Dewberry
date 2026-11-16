@@ -34,7 +34,7 @@ The rewards are made by the players. Each day's winning drawings become the item
 - Three pets: Star, Slime, Angel. The player picks one at the start. The others unlock at streaks of 7 and 30 days.
 - No content is generated at runtime. Prompts and palettes are hand authored. No placeholder or seeded entries are ever shown.
 - Built so far: the daily loop's rules and server, and the freehand drawing logic. Not built yet: screens, pets, inventory, moderation tools. Not yet run on Reddit.
-- Undecided: the game's final name. "Grout" is a working title from an earlier idea and will be replaced.
+- The game is called Dewberry (chosen by the owner on 2026-11-16).
 - Undecided: whether the four dot groups on the inventory panel are tabs (the working assumption is Food, Clothes, Scenery, Pets).
 
 ## Brand Commitments

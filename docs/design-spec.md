@@ -1,4 +1,4 @@
-# Grout: design spec
+# Dewberry: design spec
 
 Date: 2026-11-16
 Status: approved 2026-11-16, then revised the same day at the owner's request (freehand lines in any color with one shared line meter replace the 8x8 pixel grid, see section 4). The revision awaits the owner's review.
@@ -11,7 +11,7 @@ A daily drawing game for Reddit with a pet. Every day all players get the same p
 
 Each player keeps a pixel pet that lives in a sky and grass scene. Every prompt asks for something the pet can use (a food, something to wear, or a scenery object). The best drawings of the day become real items that players collect and place with their pets. The community makes the pet's world.
 
-Working title: Grout. The title came from the earlier mosaic concept and no longer fits the pixel look. Renaming is the owner's decision and does not block the build: the name appears in one constant and the content file.
+The game is called Dewberry, chosen by the owner on 2026-11-16. Earlier drafts used the working title Grout.
 
 The game is a new original, not a port.
 
