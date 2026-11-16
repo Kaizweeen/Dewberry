@@ -19,6 +19,7 @@ export type Store = {
 export const keys = {
   currentDay: 'day:current',
   rolledAt: 'day:rolledAt',
+  rollClaim: 'roll:claim',
   postDay: (postId: string) => `post:${postId}`,
   dayPost: (day: number) => `daypost:${day}`,
   entries: (day: number) => `entry:${day}`,

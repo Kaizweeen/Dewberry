@@ -63,6 +63,41 @@ describe('rollover', () => {
       await rollover(store, { now: 1 * HOUR, force: true, createPost })
     ).toEqual({ day: 2, postId: 'post2' });
   });
+
+  it('creates one post when two forced rollovers overlap', async () => {
+    const store = await dayOne();
+    let calls = 0;
+    const slowPost = async (day: number) => {
+      calls += 1;
+      await new Promise((r) => setTimeout(r, 0));
+      return `post${day}`;
+    };
+    const results = await Promise.all([
+      rollover(store, { now: 1 * HOUR, force: true, createPost: slowPost }),
+      rollover(store, { now: 1 * HOUR, force: true, createPost: slowPost }),
+    ]);
+    expect(calls).toBe(1);
+    expect(results.filter((r) => r !== null)).toHaveLength(1);
+    expect(await currentDay(store)).toBe(2);
+  });
+
+  it('releases the claim when createPost fails so the day can be retried', async () => {
+    const store = await dayOne();
+    const boom = new Error('reddit down');
+    await expect(
+      rollover(store, {
+        now: 24 * HOUR,
+        createPost: async () => {
+          throw boom;
+        },
+      })
+    ).rejects.toBe(boom);
+    expect(await currentDay(store)).toBe(1);
+    expect(await rollover(store, { now: 24 * HOUR, createPost })).toEqual({
+      day: 2,
+      postId: 'post2',
+    });
+  });
 });
 
 describe('finalizeDay and getResults', () => {

@@ -279,7 +279,15 @@ export async function rollover(
   const closing = await currentDay(store);
   await finalizeDay(store, closing);
   const day = closing + 1;
-  const postId = await a.createPost(day);
+  const won = await store.hSetNX(keys.rollClaim, String(day), String(a.now));
+  if (!won) return null;
+  let postId: string;
+  try {
+    postId = await a.createPost(day);
+  } catch (err) {
+    await store.hDel(keys.rollClaim, [String(day)]);
+    throw err;
+  }
   await store.set(keys.postDay(postId), String(day));
   await store.set(keys.dayPost(day), postId);
   await store.set(keys.currentDay, String(day));
