@@ -147,7 +147,6 @@ describe('heartEntry', () => {
       heartEntry(raced, { day: 1, userId: 'viewer', targetId: 'o5' }),
     ]);
     const spent = await store.hLen(keys.hearted(1, 'viewer'));
-    console.log('DBG', spent, JSON.stringify(results));
     expect(spent).toBeLessThanOrEqual(5);
     const given =
       ((await store.zScore(keys.hearts(1), 'o4')) ?? 0) +
