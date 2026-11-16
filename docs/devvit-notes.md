@@ -30,7 +30,7 @@ Source of each fact: **template** means the template's own source, **types** mea
 - Every menu, trigger, form, and scheduler endpoint must match `^/internal/.+`. Requests are POSTed JSON and the response must be JSON.
 - The web view can only fetch `/api/` endpoints.
 - The `scheduler` block above is from the schema, not the template (the template has no scheduler). Cron is the standard five-part UNIX format (a six-part form with seconds also exists).
-- The app `name` is `dewberry`. It must match the app registered on Reddit.
+- The app `name` is `dewberry-daily` (plain `dewberry` was taken). It must match the app registered on Reddit.
 
 ## 3. Server imports (template)
 
