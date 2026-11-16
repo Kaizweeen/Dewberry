@@ -1,8 +1,9 @@
 /** h: 0..360, s: 0..1, v: 0..1. Returns '#rrggbb' lowercase. s and v outside their range are clamped, h wraps. */
 export function hsvToHex(h: number, s: number, v: number): string {
-  const hue = ((h % 360) + 360) % 360;
-  const sat = Math.min(1, Math.max(0, s));
-  const val = Math.min(1, Math.max(0, v));
+  const fin = (n: number): number => (Number.isFinite(n) ? n : 0);
+  const hue = ((fin(h) % 360) + 360) % 360;
+  const sat = Math.min(1, Math.max(0, fin(s)));
+  const val = Math.min(1, Math.max(0, fin(v)));
   const channel = (n: number): string => {
     const k = (n + hue / 60) % 6;
     const f = val - val * sat * Math.max(0, Math.min(k, 4 - k, 1));

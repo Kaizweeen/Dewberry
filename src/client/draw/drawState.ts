@@ -104,6 +104,13 @@ export function drawReducer(
   return (state, action) => {
     switch (action.type) {
       case 'start': {
+        if (
+          state.active ||
+          !Number.isFinite(action.x) ||
+          !Number.isFinite(action.y)
+        ) {
+          return state;
+        }
         const x = clampCoord(action.x);
         const y = clampCoord(action.y);
         if (state.tool === 'eraser') {
@@ -116,7 +123,8 @@ export function drawReducer(
         }
         if (
           remaining(state, budget) < DOT_INK ||
-          state.strokes.length >= MAX_STROKES
+          state.strokes.length >= MAX_STROKES ||
+          pointCount(state.strokes) + 2 > MAX_POINTS
         ) {
           return state;
         }
@@ -128,7 +136,13 @@ export function drawReducer(
         };
       }
       case 'move': {
-        if (!state.active) return state;
+        if (
+          !state.active ||
+          !Number.isFinite(action.x) ||
+          !Number.isFinite(action.y)
+        ) {
+          return state;
+        }
         const x = clampCoord(action.x);
         const y = clampCoord(action.y);
         if (state.tool === 'eraser') {
@@ -173,9 +187,10 @@ export function drawReducer(
         };
       }
       case 'color':
-        if (!/^#[0-9a-f]{6}$/.test(action.color)) return state;
+        if (state.active || !/^#[0-9a-f]{6}$/.test(action.color)) return state;
         return { ...state, color: action.color, tool: 'pen' };
       case 'tool':
+        if (state.active) return state;
         return { ...state, tool: action.tool };
     }
   };

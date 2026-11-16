@@ -33,6 +33,20 @@ describe('hsvToHex', () => {
     expect(hsvToHex(0, 0, 0)).toBe('#000000');
   });
 
+  it('writes the secondaries', () => {
+    expect(hsvToHex(60, 1, 1)).toBe('#ffff00');
+    expect(hsvToHex(180, 1, 1)).toBe('#00ffff');
+    expect(hsvToHex(300, 1, 1)).toBe('#ff00ff');
+  });
+
+  it('treats a non-finite input as 0', () => {
+    for (const bad of [NaN, Infinity, -Infinity]) {
+      expect(hsvToHex(bad, 1, 1)).toBe('#ff0000');
+      expect(hsvToHex(0, bad, 1)).toBe('#ffffff');
+      expect(hsvToHex(0, 1, bad)).toBe('#000000');
+    }
+  });
+
   it('round-trips a handful of colors', () => {
     for (const hex of [
       '#333333',

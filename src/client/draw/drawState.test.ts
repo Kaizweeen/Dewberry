@@ -18,6 +18,7 @@ import {
   MIN_STEP,
   SIZE,
   inkUsed,
+  parseEntry,
   validateEntry,
 } from '../../shared/entry';
 import type { Drawing } from '../../shared/entry';
@@ -76,9 +77,52 @@ describe('pen', () => {
     const s = run([start(0, 0), move(10, 0), move(20, 0), move(30, 0)], budget);
     expect(inkUsed(s.strokes)).toBe(30);
     expect(remaining(s, budget)).toBe(0);
-    expect(reduce(s, move(31, 0))).toBe(s);
+    // 4 units past the end: at least MIN_STEP, so only the budget refuses it
+    expect(reduce(s, move(34, 0))).toBe(s);
     expect(reduce(s, move(60, 0))).toBe(s);
-    expect(remaining(s, budget)).toBe(0);
+    expect(remaining(s, budget)).toBeGreaterThanOrEqual(0);
+  });
+
+  it('a first move shorter than DOT_INK keeps the cost at DOT_INK', () => {
+    const s = run([start(10, 10), move(10 + MIN_STEP, 10)]);
+    expect(s.strokes[0]?.p).toEqual([10, 10, 13, 10]);
+    expect(inkUsed(s.strokes)).toBe(DOT_INK);
+  });
+
+  it('refuses start when a dot would exceed MAX_POINTS', () => {
+    const budget = 1_000_000;
+    const reduce = drawReducer(budget);
+    const zigzag = (count: number): DrawState => {
+      const p: number[] = [];
+      for (let i = 0; i < count; i++) p.push(i % 2 === 0 ? 0 : 5, 0);
+      return withStrokes([{ c: '#333333', p }], budget);
+    };
+    const full = zigzag(MAX_POINTS);
+    expect(reduce(full, start(100, 100))).toBe(full);
+    const almost = zigzag(MAX_POINTS - 1);
+    expect(reduce(almost, start(100, 100))).toBe(almost);
+    const fits = reduce(zigzag(MAX_POINTS - 2), start(100, 100));
+    expect(fits.active).toBe(true);
+    expect(parseEntry(toEntry(fits))).not.toBeNull();
+  });
+
+  it('a second start while active is ignored', () => {
+    const a = run([start(10, 10)]);
+    expect(drawReducer(BUDGET)(a, start(80, 80))).toBe(a);
+  });
+
+  it('ignores non-finite coordinates', () => {
+    const reduce = drawReducer(BUDGET);
+    const e = emptyDraw();
+    for (const bad of [NaN, Infinity, -Infinity]) {
+      expect(reduce(e, start(bad, 5))).toBe(e);
+      expect(reduce(e, start(5, bad))).toBe(e);
+    }
+    const a = run([start(10, 10)]);
+    for (const bad of [NaN, Infinity, -Infinity]) {
+      expect(reduce(a, move(bad, 50))).toBe(a);
+      expect(reduce(a, move(50, bad))).toBe(a);
+    }
   });
 
   it('refuses start when remaining is below DOT_INK', () => {
@@ -226,6 +270,21 @@ describe('color and tool', () => {
     expect(b.tool).toBe('pen');
   });
 
+  it('color and tool changes are ignored in the middle of a drag', () => {
+    const reduce = drawReducer(BUDGET);
+    const erasing = run(
+      [eraser, start(5, 5)],
+      BUDGET,
+      withStrokes([{ c: '#ff0000', p: [100, 100, 150, 100] }])
+    );
+    const colored = reduce(erasing, { type: 'color', color: '#123456' });
+    const after = reduce(colored, move(250, 250));
+    expect(after.tool).toBe('eraser');
+    expect(after.strokes).toEqual(erasing.strokes);
+    const drawing = run([start(10, 10)]);
+    expect(reduce(drawing, eraser)).toBe(drawing);
+  });
+
   it('draws new lines in the chosen color', () => {
     const s = run([{ type: 'color', color: '#123456' }, start(5, 5), end]);
     expect(s.strokes[0]?.c).toBe('#123456');
@@ -274,6 +333,12 @@ describe('toEntry, fromDraft, usedColors', () => {
 
   it('fromDraft returns null over budget', () => {
     expect(fromDraft('[{"c":"#333333","p":[0,0,200,0]}]', 100)).toBeNull();
+  });
+
+  it('fromDraft restores a drawing exactly at the budget', () => {
+    const s = fromDraft('[{"c":"#333333","p":[0,0,100,0]}]', 100);
+    expect(s).not.toBeNull();
+    expect(remaining(s ?? emptyDraw(), 100)).toBe(0);
   });
 
   it('fromDraft restores a small valid draft', () => {
