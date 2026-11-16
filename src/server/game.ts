@@ -1,10 +1,12 @@
 import { contentForDay } from '../shared/content';
 import { validateEntry } from '../shared/entry';
+import { rankEntries } from '../shared/ranking';
 import { nextStreak } from '../shared/streak';
 import type {
   DayView,
   GalleryPage,
   HeartResult,
+  Results,
   SubmitResult,
 } from '../shared/types';
 import { keys, type Store } from './store';
@@ -184,4 +186,97 @@ export async function heartEntry(
   if (!fresh) return { ok: false, error: 'already' };
   await store.zIncrBy(keys.hearts(a.day), a.targetId, 1);
   return { ok: true, heartsLeft: HEARTS_PER_DAY - used - 1 };
+}
+
+export const MIN_ROLL_GAP_MS = 12 * 60 * 60 * 1000;
+
+export async function finalizeDay(store: Store, day: number): Promise<void> {
+  if (day < 1) return;
+  if ((await store.hGet(keys.final(day), 'count')) !== undefined) return;
+
+  const [entries, names, hearts, times, hidden] = await Promise.all([
+    store.hGetAll(keys.entries(day)),
+    store.hGetAll(keys.names(day)),
+    store.zAll(keys.hearts(day)),
+    store.zAll(keys.times(day)),
+    store.hGetAll(keys.hidden(day)),
+  ]);
+  const heartOf = new Map(hearts.map((h) => [h.member, h.score]));
+  const timeOf = new Map(times.map((t) => [t.member, t.score]));
+  const ranked = rankEntries(
+    Object.keys(entries)
+      .filter((id) => !(id in hidden))
+      .map((id) => ({
+        id,
+        hearts: heartOf.get(id) ?? 0,
+        time: timeOf.get(id) ?? 0,
+      }))
+  );
+
+  const content = contentForDay(day);
+  for (const [i, id] of ranked.slice(0, 3).entries()) {
+    const entry = entries[id];
+    if (entry === undefined) continue;
+    await store.hSet(keys.item(day, i + 1), {
+      entry,
+      colors: JSON.stringify(content.colors),
+      category: content.category,
+      maker: names[id] ?? '',
+      makerId: id,
+      hearts: String(heartOf.get(id) ?? 0),
+    });
+  }
+
+  // Written last, so a crash before this point makes the next run redo the whole day.
+  const final: Record<string, string> = { count: String(ranked.length) };
+  ranked.forEach((id, i) => {
+    final[`rank:${id}`] = String(i + 1);
+  });
+  await store.hSet(keys.final(day), final);
+}
+
+export async function getResults(
+  store: Store,
+  a: { day: number; userId: string }
+): Promise<Results> {
+  const [count, myRank, items] = await Promise.all([
+    store.hGet(keys.final(a.day), 'count'),
+    store.hGet(keys.final(a.day), `rank:${a.userId}`),
+    Promise.all([1, 2, 3].map((rank) => store.hGetAll(keys.item(a.day, rank)))),
+  ]);
+  return {
+    count: Number(count ?? 0),
+    myRank: myRank === undefined ? null : Number(myRank),
+    top: items
+      .map((it, i) => ({
+        rank: i + 1,
+        username: it.maker ?? '',
+        entry: it.entry ?? '',
+        hearts: Number(it.hearts ?? 0),
+      }))
+      .filter((t) => t.entry !== ''),
+  };
+}
+
+export async function rollover(
+  store: Store,
+  a: {
+    now: number;
+    force?: boolean;
+    createPost: (day: number) => Promise<string>;
+  }
+): Promise<{ day: number; postId: string } | null> {
+  const last = await store.get(keys.rolledAt);
+  if (!a.force && last !== undefined && a.now - Number(last) < MIN_ROLL_GAP_MS)
+    return null;
+
+  const closing = await currentDay(store);
+  await finalizeDay(store, closing);
+  const day = closing + 1;
+  const postId = await a.createPost(day);
+  await store.set(keys.postDay(postId), String(day));
+  await store.set(keys.dayPost(day), postId);
+  await store.set(keys.currentDay, String(day));
+  await store.set(keys.rolledAt, String(a.now));
+  return { day, postId };
 }
