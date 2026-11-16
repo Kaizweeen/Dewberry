@@ -15,12 +15,12 @@ type Tab = 'food' | 'clothes' | 'scenery' | 'pets';
 
 // The four dot groups on panel.png sit in art row 1, at columns 2 to 6, 9 to 13,
 // 16 to 20 and 23 to 27 (the panel is drawn at 12 times, left 2, top 62). Each
-// button is centered on its group, 68 x 44, with 16px between neighbors.
+// tab is a labelled button 80 wide, centered above its dot group.
 const TABS: { id: Tab; name: string; left: number }[] = [
-  { id: 'food', name: 'Food', left: 22 },
-  { id: 'clothes', name: 'Clothes', left: 106 },
-  { id: 'scenery', name: 'Scenery', left: 190 },
-  { id: 'pets', name: 'Pets', left: 274 },
+  { id: 'food', name: 'Food', left: 16 },
+  { id: 'clothes', name: 'Clothes', left: 100 },
+  { id: 'scenery', name: 'Scenery', left: 184 },
+  { id: 'pets', name: 'Pets', left: 268 },
 ];
 
 const pocket = (i: number) => ({
@@ -138,7 +138,10 @@ export function Inventory(props: { onBack: () => void }) {
   // What the plate under the panel says, and the one cream button (if any).
   const item = onPets ? undefined : items.find((i) => i.id === sel);
   const pet = onPets ? PETS.find((p) => p === sel) : undefined;
-  let text = 'Tap a drawing to see it.';
+  let text =
+    pages > 1
+      ? `Page ${at + 1} of ${pages}. Tap a drawing to see it.`
+      : 'Tap a drawing to see it.';
   let action: { label: string; go: () => void } | null = null;
   if (onPets) {
     text = 'Tap a pet.';
@@ -216,33 +219,35 @@ export function Inventory(props: { onBack: () => void }) {
 
   return (
     <>
-      <div className="px" style={{ left: 12, top: 8, width: 351 }}>
-        <div className="heartbar" style={{ padding: '4px 12px' }}>
-          <h1 className="t24 display" aria-live="polite">
-            {tabName}
-          </h1>
-          {pages > 1 && (
-            <span className="t16">
-              Page {at + 1} of {pages}
-            </span>
-          )}
+      <h1 className="sr-only" aria-live="polite">
+        {tabName}
+      </h1>
+      {TABS.map((t) => (
+        <div
+          key={t.id}
+          style={{
+            position: 'absolute',
+            left: t.left,
+            top: 8,
+            width: 80,
+            height: 48,
+          }}
+        >
+          <button
+            className="px in btn t12"
+            style={{ width: '100%', height: '100%' }}
+            aria-pressed={tab === t.id}
+            onClick={() => choose(t.id)}
+          >
+            {t.name}
+          </button>
         </div>
-      </div>
+      ))}
       <img
         src="/art/panel.png"
         alt=""
         style={{ left: 2, top: 62, width: 372, height: 336 }}
       />
-      {TABS.map((t) => (
-        <button
-          key={t.id}
-          className="artbtn"
-          style={{ left: t.left, top: 58, width: 68, height: 44 }}
-          aria-label={t.name}
-          aria-pressed={tab === t.id}
-          onClick={() => choose(t.id)}
-        />
-      ))}
       {onPets
         ? PETS.map((p: PetId, i) => {
             const px = PET_PX[p];

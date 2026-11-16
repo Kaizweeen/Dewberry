@@ -43,6 +43,8 @@ body {
   width: 375px;
   height: 596px;
   overflow: hidden;
+  /* The sky and grass are wider than the stage. clip also stops focus from scrolling it. */
+  overflow: clip;
   font-family: 'Silkscreen', monospace;
   text-transform: uppercase;
   color: var(--ink);

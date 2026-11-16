@@ -247,7 +247,7 @@ export function PetScene(props: {
         style={{ left: 75, top: 62, width: 224, height: 80 }}
       />
       {placed.sceneryBack !== null && (
-        <Card item={placed.sceneryBack} x={59} y={60} size={64} />
+        <Card item={placed.sceneryBack} x={24} y={64} size={64} />
       )}
       <img
         src="/art/shadow.png"
@@ -276,7 +276,7 @@ export function PetScene(props: {
         </button>
       )}
       {placed.food !== null && (
-        <Card item={placed.food} x={211} y={118} size={40} />
+        <Card item={placed.food} x={240} y={124} size={40} />
       )}
       {placed.clothes !== null && (
         <span
@@ -309,7 +309,7 @@ export function PetScene(props: {
         </span>
       )}
       {placed.sceneryFront !== null && (
-        <Card item={placed.sceneryFront} x={255} y={82} size={64} />
+        <Card item={placed.sceneryFront} x={296} y={72} size={64} />
       )}
     </>
   );
