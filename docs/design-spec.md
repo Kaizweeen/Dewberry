@@ -89,15 +89,16 @@ Known ceiling: the eraser removes whole lines, not parts of lines. Rubbing out p
 
 An entry is a JSON string: the lines in the order they were drawn, each as `{ "c": "#rrggbb", "p": [x0, y0, x1, y1, ...] }`. `c` is the line's color as a six-digit lowercase hex value. Coordinates are whole numbers from 0 to 255. The client records a point each time the pointer has moved at least 3 units, which keeps entries small.
 
-The length of a line is the sum of the straight distances between its points. One shared function computes it for both the client's meter and the server's check, so they never disagree.
+The length of a line is the sum of the straight distances between its points. A tap leaves a dot, and every line costs at least 8 units, so dots are not free. One shared function computes the cost for both the client's meter and the server's check, so they never disagree.
 
 The server validates every submitted entry:
 
 - it is a string of at most 24,000 characters that parses to an array of lines in the shape above
 - at most 200 lines and 3,000 points in total, and every line has at least 2 points
 - every color is a `#` followed by six lowercase hex digits, and every coordinate is a whole number from 0 to 255
-- the total length of all lines is within the day's meter
-- the total length of all lines is at least 40 units
+- the total cost of all lines is within the day's meter
+- the total cost of all lines is at least 40 units
+- the string is exactly the compact form the game itself produces, with no extra fields or spacing
 
 Invalid entries are rejected with a 400 and never stored.
 
