@@ -1,35 +1,57 @@
 import './index.css';
 
 import { requestExpandedMode } from '@devvit/web/client';
-import { StrictMode, useEffect, useState } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-// Temporary inline view for the first playtest. It reports the size of the post
-// in the feed, and is replaced when the real screens are built.
-
-const viewport = () => `${window.innerWidth} x ${window.innerHeight}`;
-
-export const Splash = () => {
-  const [size, setSize] = useState(viewport);
-
-  useEffect(() => {
-    const onResize = () => setSize(viewport());
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
+// The inline view in the feed. Its size is not known, so it is fluid.
+export function Splash() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-white font-mono text-sm text-gray-900">
-      <p>Inline view size: {size}</p>
+    <main
+      className="stage"
+      style={{
+        inset: 0,
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
+        display: 'grid',
+        placeItems: 'center',
+        alignContent: 'center',
+        gap: 12,
+        overflow: 'hidden',
+      }}
+    >
+      <img
+        src="/art/grass.png"
+        alt=""
+        style={{
+          left: 0,
+          bottom: 0,
+          width: '100%',
+          height: '45%',
+          objectFit: 'cover',
+          objectPosition: 'top',
+        }}
+      />
+      <img
+        src="/art/star.png"
+        alt=""
+        style={{ position: 'relative', width: 96, height: 96 }}
+      />
+      <h1 className="t40 display" style={{ position: 'relative' }}>
+        Dewberry
+      </h1>
       <button
-        className="cursor-pointer rounded bg-gray-900 px-4 py-2 text-white"
+        className="px in btn primary t24"
+        style={{ height: 56, width: 160 }}
         onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
       >
-        Open the check screen
+        Play
       </button>
     </main>
   );
-};
+}
 
 const root = document.getElementById('root');
 if (root) {
