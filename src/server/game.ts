@@ -9,6 +9,7 @@ import type {
   Results,
   SubmitResult,
 } from '../shared/types';
+import { claimRewards, getPetView } from './pets';
 import { keys, type Store } from './store';
 
 export const HEARTS_PER_DAY = 5;
@@ -32,7 +33,7 @@ export async function getDayView(
 ): Promise<DayView> {
   const content = contentForDay(a.day);
   const today = await currentDay(store);
-  const [myEntry, entryCount, heartsUsed, myHearts, player, todayPostId] =
+  const [myEntry, entryCount, heartsUsed, myHearts, player, todayPostId, fed] =
     await Promise.all([
       store.hGet(keys.entries(a.day), a.userId),
       store.hLen(keys.entries(a.day)),
@@ -40,7 +41,10 @@ export async function getDayView(
       store.zScore(keys.hearts(a.day), a.userId),
       playerState(store, a.userId),
       store.get(keys.dayPost(today)),
+      store.hGet(keys.entries(today), a.userId),
     ]);
+  const claim = await claimRewards(store, a.userId);
+  const pet = await getPetView(store, a.userId);
   return {
     day: a.day,
     postId: a.postId,
@@ -55,6 +59,11 @@ export async function getDayView(
     // A streak is live only if the player played today or yesterday.
     streak: player.lastPlayed >= today - 1 ? player.streak : 0,
     heartsLeft: HEARTS_PER_DAY - heartsUsed,
+    pet: pet.pet,
+    petName: pet.name,
+    fed: fed !== undefined,
+    placed: pet.placed,
+    claim,
   };
 }
 

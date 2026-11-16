@@ -34,4 +34,7 @@ export const keys = {
   item: (day: number, rank: number) => `item:${day}:${rank}`,
   player: (userId: string) => `player:${userId}`,
   played: (userId: string) => `played:${userId}`,
+  pets: (userId: string) => `pets:${userId}`,
+  items: (userId: string) => `items:${userId}`,
+  claimed: (userId: string) => `claimed:${userId}`,
 };

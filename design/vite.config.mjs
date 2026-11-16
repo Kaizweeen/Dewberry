@@ -79,6 +79,8 @@ function localGame() {
 
       async function boot() {
         const game = await server.ssrLoadModule('/src/server/game.ts');
+        const pets = await server.ssrLoadModule('/src/server/pets.ts');
+        const { keys } = await server.ssrLoadModule('/src/server/store.ts');
         const { memoryStore } = await server.ssrLoadModule(
           '/src/server/memoryStore.ts'
         );
@@ -100,7 +102,7 @@ function localGame() {
           });
         }
         viewDay = 1;
-        return { game, store, createPost };
+        return { game, pets, keys, store, createPost };
       }
 
       const send = (res, status, body) => {
@@ -126,7 +128,7 @@ function localGame() {
         if (!url.startsWith('/api/') && !url.startsWith('/dev/')) return next();
         try {
           if (!world || url === '/dev/reset') world = await boot();
-          const { game, store, createPost } = world;
+          const { game, pets, keys, store, createPost } = world;
           const me = { userId: ME, postId: `t3_local${viewDay}`, day: viewDay };
 
           if (url === '/dev/reset') return send(res, 200, { ok: true });
@@ -138,6 +140,19 @@ function localGame() {
               createPost,
             });
             return send(res, 200, { rolled, viewing: viewDay });
+          }
+          if (url === '/dev/streak') {
+            // Set the local player's best streak so pet unlocks can be tried.
+            const body = await readBody(req);
+            await store.hSet(keys.player(ME), {
+              best: String(Number(body?.best) || 0),
+            });
+            return send(res, 200, { ok: true });
+          }
+          if (url === '/dev/view-today') {
+            // Show the current day's post, so the day after can be played.
+            viewDay = await game.currentDay(store);
+            return send(res, 200, { viewing: viewDay });
           }
           if (url === '/dev/hearts') {
             // Give the local player's drawing a few hearts from other players.
@@ -182,6 +197,16 @@ function localGame() {
               targetId: typeof body?.targetId === 'string' ? body.targetId : '',
             });
             return send(res, result.ok ? 200 : 409, result);
+          }
+          if (url === '/api/pet')
+            return send(res, 200, await pets.getPetView(store, ME));
+          if (url === '/api/pet/update') {
+            const body = await readBody(req);
+            const result = await pets.updatePet(store, {
+              userId: ME,
+              action: body?.action,
+            });
+            return send(res, result.ok ? 200 : 400, result);
           }
           if (url === '/api/results')
             return send(res, 200, await game.getResults(store, me));

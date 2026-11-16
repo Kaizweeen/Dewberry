@@ -2,6 +2,9 @@ import type {
   DayView,
   GalleryPage,
   HeartResult,
+  PetAction,
+  PetResult,
+  PetView,
   Results,
   SubmitResult,
 } from '../shared/types';
@@ -72,4 +75,7 @@ export const api = {
   heart: (targetId: string): Promise<HeartResult> =>
     post('/api/heart', { targetId }, [200, 409]),
   results: (): Promise<Results> => get('/api/results'),
+  pet: (): Promise<PetView> => get('/api/pet'),
+  updatePet: (action: PetAction): Promise<PetResult> =>
+    post('/api/pet/update', { action }, [200, 400]),
 };

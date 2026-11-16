@@ -18,6 +18,7 @@ import {
   rollover,
   submitEntry,
 } from './game';
+import { getPetView, updatePet } from './pets';
 import { redisStore as store } from './redisStore';
 import { keys } from './store';
 
@@ -96,6 +97,31 @@ api.post(
 api.get(
   '/results',
   play(async (me, c) => c.json(await getResults(store, me)))
+);
+
+/** A route that needs a logged-in user but not a game-day post. */
+const withUser =
+  (handler: (userId: string, c: Context) => Promise<Response>) =>
+  async (c: Context) => {
+    const { userId } = context;
+    if (!userId) return c.json({ error: 'Log in to Reddit to play.' }, 401);
+    return handler(userId, c);
+  };
+
+api.get(
+  '/pet',
+  withUser(async (userId, c) => c.json(await getPetView(store, userId)))
+);
+
+api.post(
+  '/pet/update',
+  withUser(async (userId, c) => {
+    const body = await c.req
+      .json<{ action?: unknown } | null>()
+      .catch(() => null);
+    const result = await updatePet(store, { userId, action: body?.action });
+    return c.json(result, result.ok ? 200 : 400);
+  })
 );
 
 async function createPost(day: number): Promise<string> {

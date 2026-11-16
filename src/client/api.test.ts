@@ -115,6 +115,38 @@ describe('heart', () => {
   });
 });
 
+describe('pet', () => {
+  it('gets the pet view', async () => {
+    const f = reply(200, { pet: null });
+    expect(await api.pet()).toEqual({ pet: null });
+    expect(f.mock.calls[0]?.[0]).toBe('/api/pet');
+  });
+
+  it('posts the action and returns the body for 200 and 400', async () => {
+    const f = reply(200, { ok: true });
+    expect(await api.updatePet({ type: 'pick', pet: 'star' })).toEqual({
+      ok: true,
+    });
+    const [path, init] = f.mock.calls[0] ?? [];
+    expect(path).toBe('/api/pet/update');
+    expect(init).toMatchObject({
+      method: 'POST',
+      body: JSON.stringify({ action: { type: 'pick', pet: 'star' } }),
+    });
+    const refused = { ok: false, reason: 'Nope.' };
+    reply(400, refused);
+    expect(await api.updatePet({ type: 'name', name: '!' })).toEqual(refused);
+  });
+
+  it('throws for any other status', async () => {
+    reply(401, { error: 'Log in to Reddit to play.' });
+    const err = await failure(() =>
+      api.updatePet({ type: 'toggle', itemId: 'x' })
+    );
+    expect(err.status).toBe(401);
+  });
+});
+
 describe('network failure', () => {
   it('becomes ApiFailure with status 0', async () => {
     vi.stubGlobal(
@@ -127,6 +159,8 @@ describe('network failure', () => {
       () => api.day(),
       () => api.submit('x'),
       () => api.heart('u1'),
+      () => api.pet(),
+      () => api.updatePet({ type: 'toggle', itemId: 'x' }),
     ]) {
       const err = await failure(run);
       expect(err.status).toBe(0);
