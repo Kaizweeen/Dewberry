@@ -193,7 +193,7 @@ The basic container. A grey fill with a 4px toned edge and stepped corners. Plat
 - **Toggled on** (pen, eraser): white fill with an ink edge.
 - **Focus:** an inner ring one unit thick, ink on grey and toast on cream.
 - **Disabled:** pale grey fill and grey text, no press movement.
-- **Art buttons:** the owner's drawn home button is used as an image, brightens slightly on hover, and takes an ink outline on focus.
+- **Art buttons:** the owner's drawn home and edit buttons are used as images, brighten slightly on hover, and take an ink outline on focus.
 
 ### Day tab
 
@@ -214,6 +214,18 @@ A square for brightness and strength, a strip for hue, and square knobs with a w
 ### Drawings in the gallery
 
 Each drawing sits on paper in a pocket of the waffle panel. Hover lifts it 4px. Focus draws a toast outline. A hearted drawing gets a heart badge at its top right corner.
+
+### The pet and its things
+
+The pet stands on the grass at 12 times its drawn size, with the owner's nameplate under it and the owner's edit button beside the nameplate. A pet that has not been fed today shows a small pixel "z z". Food and scenery items sit beside the pet as drawings on small paper cards with a hard grey outline. Clothes are the one place a drawing is shown without paper: lines only, on the pet's head.
+
+### Inventory
+
+The owner's waffle panel at 12 times its drawn size. Each pocket holds one owned drawing on paper. Four labelled tab buttons sit above the panel's four dot groups, and the chosen tab takes the toggled look. A pixel check marks what is placed and which pet is current. The plate under the panel shows the chosen item larger, who made it, and the one cream button.
+
+### Claim card
+
+One plate, shown before anything else when the pet has earned items: where the player placed, then the earned drawings on paper with their makers, then one cream button.
 
 ### Hearts
 
