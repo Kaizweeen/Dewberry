@@ -1,1 +1,514 @@
 @import 'tailwindcss';
+@import '@fontsource/silkscreen/400.css';
+
+:root {
+  /* Sampled from the owner's art (nameplate, buttons, waffle panel, Star). */
+  --plate: #f1f1f1;
+  --line: #838383;
+  --line-hi: #c3c3c3;
+  --ink: #565656;
+  --cream: #ffe59a;
+  --caramel: #e3a75c;
+  --caramel-hi: #f1c67b;
+  --caramel-lo: #c8873d;
+  --toast: #6b4420;
+  --heart: #ff5e55;
+  --cell: #e2e2e2;
+  --cell-line: #cecece;
+  --paper: #fbf7ec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: #53daff;
+  overflow: hidden;
+}
+
+/* ---------- The game ---------- */
+.viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #53daff;
+}
+.stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 375px;
+  height: 596px;
+  overflow: hidden;
+  font-family: 'Silkscreen', monospace;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: #53daff;
+  --u: 4px;
+}
+.stage ::selection {
+  background: var(--cream);
+  color: var(--toast);
+}
+.stage img {
+  position: absolute;
+  max-width: none;
+  image-rendering: pixelated;
+  user-select: none;
+}
+.stage h1,
+.stage p,
+.stage ul {
+  margin: 0;
+  padding: 0;
+  font-weight: 400;
+}
+.stage h1 {
+  text-wrap: balance;
+}
+.stage ul {
+  list-style: none;
+}
+.stage .sky {
+  left: -388px;
+  top: 0;
+  width: 1152px;
+  height: 384px;
+}
+.stage .grass {
+  left: -388px;
+  top: 296px;
+  width: 1152px;
+  height: 384px;
+}
+.stage .grass.high {
+  left: -676px;
+  top: 112px;
+  width: 1728px;
+  height: 576px;
+}
+
+/* Pixel-chamfered box, same corner steps as the owner's nameplate and buttons. */
+.px {
+  position: absolute;
+  isolation: isolate;
+  padding: var(--u);
+  background:
+    linear-gradient(
+        var(--edge-hi, var(--line-hi)),
+        var(--edge-hi, var(--line-hi))
+      )
+      top left / calc(100% - var(--u)) calc(100% - var(--u)) no-repeat,
+    var(--edge-lo, var(--line));
+  clip-path: polygon(
+    calc(2 * var(--u)) 0,
+    calc(100% - 2 * var(--u)) 0,
+    calc(100% - 2 * var(--u)) var(--u),
+    calc(100% - var(--u)) var(--u),
+    calc(100% - var(--u)) calc(2 * var(--u)),
+    100% calc(2 * var(--u)),
+    100% calc(100% - 2 * var(--u)),
+    calc(100% - var(--u)) calc(100% - 2 * var(--u)),
+    calc(100% - var(--u)) calc(100% - var(--u)),
+    calc(100% - 2 * var(--u)) calc(100% - var(--u)),
+    calc(100% - 2 * var(--u)) 100%,
+    calc(2 * var(--u)) 100%,
+    calc(2 * var(--u)) calc(100% - var(--u)),
+    var(--u) calc(100% - var(--u)),
+    var(--u) calc(100% - 2 * var(--u)),
+    0 calc(100% - 2 * var(--u)),
+    0 calc(2 * var(--u)),
+    var(--u) calc(2 * var(--u)),
+    var(--u) var(--u),
+    calc(2 * var(--u)) var(--u)
+  );
+}
+.px::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: var(--u);
+  background: var(--fill, var(--plate));
+  clip-path: polygon(
+    var(--u) 0,
+    calc(100% - var(--u)) 0,
+    calc(100% - var(--u)) var(--u),
+    100% var(--u),
+    100% calc(100% - var(--u)),
+    calc(100% - var(--u)) calc(100% - var(--u)),
+    calc(100% - var(--u)) 100%,
+    var(--u) 100%,
+    var(--u) calc(100% - var(--u)),
+    0 calc(100% - var(--u)),
+    0 var(--u),
+    var(--u) var(--u)
+  );
+}
+.px.in {
+  position: relative;
+}
+.even {
+  --edge-hi: var(--line);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.grow {
+  flex: 1;
+}
+.stack > * {
+  flex-shrink: 0;
+}
+.t40 {
+  font-size: 40px;
+  line-height: 44px;
+}
+.t32 {
+  font-size: 32px;
+  line-height: 36px;
+}
+.t24 {
+  font-size: 24px;
+  line-height: 30px;
+}
+.t16 {
+  font-size: 16px;
+  line-height: 22px;
+}
+.t12 {
+  font-size: 12px;
+  line-height: 14px;
+}
+.display {
+  color: var(--line);
+}
+
+.tab {
+  --fill: var(--cream);
+  --edge-hi: var(--caramel-hi);
+  --edge-lo: var(--caramel-lo);
+  color: var(--toast);
+  white-space: nowrap;
+}
+.tab span {
+  display: block;
+  padding: 0 calc(3 * var(--u));
+}
+
+/* Buttons */
+.btn {
+  font-family: inherit;
+  text-transform: inherit;
+  color: var(--ink);
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(2 * var(--u));
+  text-align: center;
+  --edge-hi: var(--line);
+}
+.btn.in {
+  position: relative;
+}
+.btn:hover {
+  --fill: #ffffff;
+}
+.btn:active {
+  translate: 0 var(--u);
+}
+.btn:focus-visible::before {
+  box-shadow: inset 0 0 0 var(--u) var(--ink);
+}
+.btn.primary {
+  --fill: var(--cream);
+  --edge-hi: var(--caramel-hi);
+  --edge-lo: var(--caramel-lo);
+  color: var(--toast);
+}
+.btn.primary:hover {
+  --fill: #fff0bd;
+}
+.btn.primary:focus-visible::before {
+  box-shadow: inset 0 0 0 var(--u) var(--toast);
+}
+.btn[disabled] {
+  --fill: #e4e4e4;
+  color: #8d8d8d;
+  cursor: default;
+}
+.btn[disabled]:active {
+  translate: none;
+}
+.artbtn {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.artbtn img {
+  position: static;
+  max-width: 100%;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.artbtn:hover {
+  filter: brightness(1.06);
+}
+.artbtn:active {
+  translate: 0 4px;
+}
+.artbtn:focus-visible {
+  outline: 4px solid var(--ink);
+  outline-offset: 4px;
+}
+.icon {
+  display: block;
+  flex: none;
+}
+.icon svg,
+.art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Palette swatches */
+.chip {
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
+  --edge-hi: var(--line);
+}
+
+/* A drawing shown in a waffle pocket */
+.pocket {
+  background: var(--caramel);
+  box-shadow:
+    inset var(--pu) var(--pu) 0 0 var(--caramel-hi),
+    0 0 0 var(--pu) var(--cream);
+  padding: var(--pu) 0 0 var(--pu);
+}
+.art {
+  display: block;
+}
+
+/* Drawing board: a sheet of paper */
+.board .sheet {
+  display: block;
+  margin: var(--u);
+  background: var(--paper);
+  cursor: crosshair;
+  touch-action: none;
+}
+.paper {
+  background: var(--paper);
+}
+.art svg,
+.sheet svg,
+.entry svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.btn[aria-pressed='true'] {
+  --edge-hi: var(--ink);
+  --edge-lo: var(--ink);
+  --fill: #ffffff;
+}
+
+.entry {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+/* The one line meter */
+.meter {
+  display: block;
+  height: calc(2 * var(--u));
+  background: #cfcfcf;
+}
+.meter b {
+  display: block;
+  height: 100%;
+  width: var(--left, 100%);
+  background: var(--c);
+}
+.meter.big {
+  height: calc(3 * var(--u));
+}
+.meter.big b {
+  background: var(--ink);
+}
+.meter.pulse {
+  animation: meter-pulse 360ms steps(2, end) 2;
+}
+@keyframes meter-pulse {
+  50% {
+    background: var(--heart);
+  }
+}
+
+/* Color picker: a square for light and strength, a strip for hue */
+.sv {
+  position: relative;
+  cursor: crosshair;
+  touch-action: none;
+  background:
+    linear-gradient(to top, #000, rgba(0, 0, 0, 0)),
+    linear-gradient(to right, #fff, hsl(var(--h) 100% 50%));
+}
+.hue {
+  position: relative;
+  cursor: ns-resize;
+  touch-action: none;
+  background: linear-gradient(
+    to bottom,
+    #f00,
+    #ff0,
+    #0f0,
+    #0ff,
+    #00f,
+    #f0f,
+    #f00
+  );
+}
+.hue.flat {
+  cursor: ew-resize;
+  background: linear-gradient(
+    to right,
+    #f00,
+    #ff0,
+    #0f0,
+    #0ff,
+    #00f,
+    #f0f,
+    #f00
+  );
+}
+.sv:focus-visible,
+.hue:focus-visible {
+  outline: var(--k) solid var(--toast);
+  outline-offset: calc(-1 * var(--k));
+}
+.knob {
+  position: absolute;
+  width: calc(3 * var(--k));
+  height: calc(3 * var(--k));
+  translate: -50% -50%;
+  border: var(--k) solid #fff;
+  box-shadow: 0 0 0 var(--k) var(--ink);
+  pointer-events: none;
+}
+.hue .knob {
+  left: 50%;
+  width: calc(100% + 2 * var(--k));
+  height: calc(3 * var(--k));
+}
+.hue.flat .knob {
+  left: auto;
+  top: 50%;
+  width: calc(3 * var(--k));
+  height: calc(100% + 2 * var(--k));
+}
+.used {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--u);
+}
+.used .chip {
+  border: 0;
+  cursor: pointer;
+  --edge-hi: var(--line);
+}
+.used .chip[aria-pressed='true'] {
+  --edge-hi: var(--ink);
+  --edge-lo: var(--ink);
+  translate: 0 calc(-1 * var(--u));
+}
+.used .chip:focus-visible::before {
+  box-shadow: inset 0 0 0 var(--u) var(--ink);
+}
+
+.entry.paper {
+  background: var(--paper);
+}
+.entry:hover {
+  translate: 0 -4px;
+}
+.entry:focus-visible {
+  outline: 4px solid var(--toast);
+  outline-offset: 2px;
+}
+.entry .badge {
+  position: absolute;
+  right: -10%;
+  top: -10%;
+  width: 44%;
+  filter: drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)
+    drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff);
+}
+
+.hearts {
+  display: flex;
+  gap: var(--u);
+}
+.heartbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+}
+.heartbar .hearts {
+  gap: 6px;
+}
+.heartbar .t16 {
+  margin-left: auto;
+}
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(2 * var(--u));
+}
+.podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: calc(5 * var(--u));
+}
+.podium li {
+  display: grid;
+  justify-items: center;
+  gap: var(--u);
+  min-width: 0;
+}
+.podium .who {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.count {
+  display: flex;
+  align-items: center;
+  gap: var(--u);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage *,
+  .stage *::before,
+  .stage *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
