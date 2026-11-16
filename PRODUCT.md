@@ -33,7 +33,7 @@ The rewards are made by the players. Each day's winning drawings become the item
 - Ranking is by hearts, then by earlier submission. The top 25 percent and the top three matter for rewards.
 - Three pets: Star, Slime, Angel. The player picks one at the start. The others unlock at streaks of 7 and 30 days.
 - No content is generated at runtime. Prompts and palettes are hand authored. No placeholder or seeded entries are ever shown.
-- Built so far: the daily loop's rules and server, written for the earlier pixel grid. The entry rules, content, and canvas code are being reworked for freehand lines. Not built yet: screens, pets, inventory, moderation tools.
+- Built so far: the daily loop's rules and server, and the freehand drawing logic. Not built yet: screens, pets, inventory, moderation tools. Not yet run on Reddit.
 - Undecided: the game's final name. "Grout" is a working title from an earlier idea and will be replaced.
 - Undecided: whether the four dot groups on the inventory panel are tabs (the working assumption is Food, Clothes, Scenery, Pets).
 
