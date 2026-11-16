@@ -58,9 +58,19 @@ export function App() {
   const loadingRef = useRef(false);
   const refreshes = useRef(0);
 
-  // Keeps the first claim from any day response. A later `claim: null` never erases it.
+  // Keeps every claim from any day response. A later `claim: null` never erases it,
+  // and a second claim (two answers can each carry different days) is added to the first.
   const keepClaim = (v: DayView) => {
-    if (v.claim !== null) setClaim((kept) => kept ?? v.claim);
+    const got = v.claim;
+    if (got === null) return;
+    setClaim((kept) =>
+      kept === null
+        ? got
+        : {
+            days: [...kept.days, ...got.days],
+            items: [...kept.items, ...got.items],
+          }
+    );
   };
 
   const load = () => {
@@ -123,8 +133,12 @@ export function App() {
   // Result needs a drawing to show. Without one the player starts at Start.
   const current =
     screen === 'result' && view.myEntry === null ? 'start' : screen;
-  // The pick and the claim card come before any screen. The pick is on the grass.
-  const before = view.pet === null ? 'pick' : claim !== null ? 'claim' : null;
+  // The pick and the claim card come before a screen. The pick is on the grass.
+  // A claim that arrives mid-play waits: it never interrupts drawing or the gallery.
+  const calm =
+    current === 'start' || current === 'result' || current === 'closed';
+  const before =
+    view.pet === null ? 'pick' : claim !== null && calm ? 'claim' : null;
   return (
     <Stage
       horizon={

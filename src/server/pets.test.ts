@@ -40,6 +40,24 @@ const ids = (items: { id: string }[]) => items.map((i) => i.id);
 const update = (store: Store, action: PetAction | unknown, userId = 'u1') =>
   updatePet(store, { userId, action });
 
+describe('a claim that fails part way', () => {
+  it('can be claimed again once the store works', async () => {
+    const store = await closedDayOfFour();
+    let failing = true;
+    const flaky: Store = {
+      ...store,
+      hSet: (key, fields) =>
+        failing && key === keys.items('u4')
+          ? Promise.reject(new Error('store down'))
+          : store.hSet(key, fields),
+    };
+    await expect(claimRewards(flaky, 'u4')).rejects.toThrow('store down');
+    failing = false;
+    const claim = await claimRewards(flaky, 'u4');
+    expect(ids(claim?.items ?? [])).toEqual(['1:1']);
+  });
+});
+
 describe('the reward table', () => {
   it('gives the maker of each top three item that item, and everyone rank 1', async () => {
     const store = await closedDayOfFour();
@@ -282,7 +300,14 @@ describe('toggle', () => {
   it('refuses an item the player does not own', async () => {
     const store = memoryStore();
     await seed(store);
-    expect(await toggle(store, '9:9')).toEqual({
+    // A real item that someone else owns, so only the ownership check can refuse it.
+    await store.hSet(keys.item(4, 1), {
+      entry: lineEntry(),
+      category: 'food',
+      maker: 'm',
+      makerId: 'x',
+    });
+    expect(await toggle(store, '4:1')).toEqual({
       ok: false,
       reason: 'That item is not yours.',
     });

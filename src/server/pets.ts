@@ -65,28 +65,35 @@ export async function claimRewards(
     const final = await store.hGetAll(keys.final(day));
     if (final.count === undefined) continue;
     if (!(await store.hSetNX(keys.claimed(userId), String(day), '1'))) continue;
-    const top = await Promise.all(
-      RANKS.map(async (rank) => {
-        const it = await store.hGetAll(keys.item(day, rank));
-        return { rank, item: toItem(day, rank, it), makerId: it.makerId };
-      })
-    );
     const rank = final[`rank:${userId}`];
     const count = Number(final.count);
-    const earned = earnedRanks({
-      rank: rank === undefined ? null : Number(rank),
-      count,
-      itemRanks: top.flatMap((t) => (t.item ? [t.rank] : [])),
-      madeRank: top.find((t) => t.makerId === userId)?.rank ?? null,
-    });
-    const got = top.flatMap((t) =>
-      t.item && earned.includes(t.rank) ? [t.item] : []
-    );
-    if (got.length > 0)
-      await store.hSet(
-        keys.items(userId),
-        Object.fromEntries(got.map((i) => [i.id, '1']))
+    let got: Item[];
+    try {
+      const top = await Promise.all(
+        RANKS.map(async (r) => {
+          const it = await store.hGetAll(keys.item(day, r));
+          return { rank: r, item: toItem(day, r, it), makerId: it.makerId };
+        })
       );
+      const earned = earnedRanks({
+        rank: rank === undefined ? null : Number(rank),
+        count,
+        itemRanks: top.flatMap((t) => (t.item ? [t.rank] : [])),
+        madeRank: top.find((t) => t.makerId === userId)?.rank ?? null,
+      });
+      got = top.flatMap((t) =>
+        t.item && earned.includes(t.rank) ? [t.item] : []
+      );
+      if (got.length > 0)
+        await store.hSet(
+          keys.items(userId),
+          Object.fromEntries(got.map((i) => [i.id, '1']))
+        );
+    } catch (err) {
+      // Give the day back, or a store error here would lose its items for good.
+      await store.hDel(keys.claimed(userId), [String(day)]);
+      throw err;
+    }
     days.push({ day, rank: rank === undefined ? null : Number(rank), count });
     items.push(...got);
   }
