@@ -13,6 +13,7 @@ colors:
   caramel-lo: "#c8873d"
   toast: "#6b4420"
   heart: "#ff5e55"
+  berry: "#6b53b8"
   paper: "#fbf7ec"
   disabled-fill: "#e4e4e4"
   disabled-text: "#8d8d8d"
@@ -114,6 +115,7 @@ A flat sky and neutral grey plates carry the interface. Warm waffle colors mark 
 ### Secondary
 
 - **Heart Red** (`heart`): filled hearts, the heart badge on a drawing, and the brief flash of the meter when the line runs out. Nothing else is red.
+- **Dewberry Purple** (`berry`): the filled dewberries of the pet's fullness. Nothing else is purple.
 
 ### Neutral
 
@@ -157,7 +159,8 @@ The game is designed once, on a stage of 375 x 596. That is the measured size of
 - Positions are absolute within the stage, on the 4px unit.
 - The side gutter is 12px. Full width plates are 351px wide.
 - The day tab sits at the top right, 12px from both edges.
-- The grass horizon is high on the Start and Result screens, where the pet stands, and low on the others.
+- The grass horizon is high on the Home and Result screens, where the pet stands, and low on the others.
+- Home is the landing page of every open day. The pet's scene fills the top 216px, and one plate below it holds the prompt, one line about the day, the cream button, the two grey buttons (Feed and Inventory), and the streak.
 - The drawing sheet is 256 x 256 and is never scaled by a fraction on the Draw screen.
 - The inline view in the feed is fluid, because its size is not known. It shows the pet, the name, and one Play button.
 
@@ -217,11 +220,15 @@ Each drawing sits on paper in a pocket of the waffle panel. Hover lifts it 4px. 
 
 ### The pet and its things
 
-The pet stands on the grass at 12 times its drawn size, with the owner's nameplate under it and the owner's edit button beside the nameplate. A pet that has not been fed today shows a small pixel "z z". Food and scenery items sit beside the pet as drawings on small paper cards with a hard grey outline. Clothes are the one place a drawing is shown without paper: lines only, on the pet's head.
+The pet stands on the grass at 12 times its drawn size, with the owner's nameplate under it and the owner's edit button beside the nameplate. A pet with no fullness left shows a small pixel "z z". Scenery items sit beside the pet as drawings on small paper cards with a hard grey outline. Clothes are the one place a drawing is shown without paper: lines only, on the pet's head. Food is eaten, so it is never shown in the scene.
+
+### Fullness
+
+Three pixel dewberries in a row, the same pattern as hearts: purple when full, an empty grey outline when not. The row always shows all three. On Home it sits on a small plate to the left of the nameplate, at 2 times. On the Food tab it sits beside the Feed button, larger. Its label says the same thing in words.
 
 ### Inventory
 
-The owner's waffle panel at 12 times its drawn size. Each pocket holds one owned drawing on paper. Four labelled tab buttons sit above the panel's four dot groups, and the chosen tab takes the toggled look. A pixel check marks what is placed and which pet is current. The plate under the panel shows the chosen item larger, who made it, and the one cream button.
+The owner's waffle panel at 12 times its drawn size. Each pocket holds one owned drawing on paper. Four labelled tab buttons sit above the panel's four dot groups, and the chosen tab takes the toggled look. A pixel check marks what is placed and which pet is current. The plate under the panel shows the chosen item larger, who made it, and the one cream button: Place or Take away for clothes and scenery, Feed for food. Each food carries a small grey number plate at its corner with the servings it has left, and the Food tab keeps the pet's fullness in sight beside the button.
 
 ### Claim card
 
@@ -246,7 +253,7 @@ Five pixel hearts in a row: red when left to give, an empty grey outline when sp
 
 - **Don't** use rounded corners, blurred shadows, or gradients in the interface. The color picker's own surfaces are the only gradients.
 - **Don't** redraw, recolor, or smooth the owner's art.
-- **Don't** use red for anything but hearts and the empty meter flash.
+- **Don't** use red for anything but hearts and the empty meter flash, or purple for anything but fullness.
 - **Don't** add a second cream button to a screen.
 - **Don't** make a screen scroll. If it does not fit in 375 x 596, it has too much on it.
 - **Don't** go below 12px text.

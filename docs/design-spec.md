@@ -1,7 +1,7 @@
 # Dewberry: design spec
 
 Date: 2026-11-16
-Status: approved 2026-11-16, then revised the same day at the owner's request (freehand lines in any color with one shared line meter replace the 8x8 pixel grid, see section 4). The owner approved the revision the same day, and confirmed the reward rules (section 7) and the inventory tabs (section 6).
+Status: approved 2026-11-16, then revised the same day at the owner's request (freehand lines in any color with one shared line meter replace the 8x8 pixel grid, see section 4). The owner approved the revision the same day, and confirmed the reward rules (section 7) and the inventory tabs (section 6). On 2026-11-17 the owner asked for feeding and a home page, and approved the design in sections 3 and 6: food is a reward that gets used up, and the pet's home is the landing page.
 Target: Reddit's Game of the Day Hackathon (Nov 11 to Dec 8, 2026), built on Devvit Web
 Visual reference (read-only, owned by the project owner): https://www.figma.com/design/U5b3iV8Gsk5qgOEUDZAegB/Untitled?node-id=0-1
 
@@ -41,13 +41,13 @@ A post is **open** from its creation until the next post is created. While open 
 
 Screens, in order:
 
-1. **Pet pick (first visit only).** The three pets side by side in the scene. One tap chooses, and the player lands on Start. No other setup.
-2. **Start.** The player's pet in the scene, the game name, the date, today's prompt and category, the player's streak, the number of entries so far, and one Play button. If the player has unclaimed rewards, a single claim card shows first (section 7).
+1. **Pet pick (first visit only).** The three pets side by side in the scene. One tap chooses, and the player lands on Home. No other setup.
+2. **Home.** The landing page of every open day, whether or not the player has drawn yet. The player's pet in its scene with its nameplate, the edit button, and its fullness as three dewberries. Below it: today's prompt, one line about where the player's day stands, one main button, two grey buttons (Feed and Inventory), the streak, and the number of drawings so far. The main button follows the day: "Draw today" before submitting, "Give hearts" while hearts are left, then "Your drawing". If the player has unclaimed rewards, a single claim card shows first (section 7).
 3. **Draw.** The paper, the line meter, the color picker, undo, erase, and Submit. Nothing else.
 4. **Gallery.** Shown only after the player has submitted. Other players' drawings in pages of 12, with a heart button on each and a counter of hearts left.
-5. **Result card.** The player's drawing, their streak, the pet in its fed state, hearts received so far, and the line "Come back tomorrow to see what your pet gets." One next step: a button that opens the post's comments.
+5. **Result card.** The player's drawing, their streak, the pet, hearts received so far, and when results come. A home button leads back to Home, and one more button opens the post's comments.
 
-The inventory (section 6) is reached by tapping the pet on the Start screen. It is never reachable from Draw.
+The inventory (section 6) is reached from Home: Feed opens it on the Food tab, and Inventory or a tap on the pet opens it on the Clothes tab. It is never reachable from Draw.
 
 Onboarding is contextual. There is no tutorial screen. On a player's first day, a single hint under the paper reads "Pick a color, then draw. The line runs out." It disappears after the first line.
 
@@ -141,22 +141,31 @@ Three hand-drawn pixel pets from the Figma reference: Star, Slime, and Angel. Th
 - The other two unlock at streaks of 7 and 30 days, in the order the player chooses.
 - A player switches between unlocked pets in the inventory.
 
-The pet has two states:
-- **Fed:** the player has submitted on the current open day.
-- **Sleepy:** the player has not submitted yet today. Shown by a small pixel "z z" mark above the pet. If the team later draws sleepy sprites, they replace the mark with no other change.
+### Feeding
 
-The pet never dies, shrinks, or loses anything.
+Approved by the owner on 2026-11-17, in the owner's words: "Foods are rewards from drawing competition. they get used up".
+
+- The pet has a fullness meter from 0 to 3, shown as three dewberries beside the nameplate: filled for each point of fullness, an empty outline for the rest.
+- A new pet starts full. Fullness drops by 1 each time a new day opens, and stops at 0.
+- Every food a player collects comes with 3 servings. Feeding uses one serving and adds 1 to fullness. A full pet cannot be fed. After its third serving the food leaves the inventory.
+- Food is the only way to raise fullness. Drawing does not feed the pet. Food comes only from the competition (section 7).
+- At fullness 0 the pet shows a small pixel "z z" mark. If the team later draws sleepy sprites, they replace the mark with no other change.
+- Fullness belongs to the player, not to each pet. Switching pets keeps it.
+
+The numbers are meant to balance. The pet needs one serving a day. Food days come about every third day, and everyone who draws on one collects the winning food (3 servings), so a daily player keeps up. A drawing in the top 25 percent collects up to three foods (9 servings).
+
+The pet never dies, shrinks, or loses anything. A hungry pet costs the player nothing.
 
 ### Items
 
 An item is a finalized top-three drawing from a past day. It stores the entry string (which carries its own colors), the day's category, its rank, and the maker's username. Items are identified by day and rank.
 
 Three categories, set per day in the content file:
-- **Food.** Shown in the bowl spot, on the grass in front of the pet.
+- **Food.** Eaten, not placed (see Feeding above). It is never shown in the scene.
 - **Clothes.** Shown on the pet, positioned by a head anchor point defined per pet.
 - **Scenery.** Objects that stand in the scene (a tree, a lamp, a little house). Two scenery spots: one behind the pet to its left, one in front to its right.
 
-An item is shown as its drawing on a small paper card, sized to sit beside the pet. Since the 2026-11-16 revision, items are smooth line drawings in a pixel-art scene. The mismatch is accepted by the owner. As built: food and scenery sit on a small paper card with a hard grey outline, and clothes are shown as lines only, with no paper, on the pet's head.
+An item is shown as its drawing on a small paper card, sized to sit beside the pet. Since the 2026-11-16 revision, items are smooth line drawings in a pixel-art scene. The mismatch is accepted by the owner. As built: scenery sits on a small paper card with a hard grey outline, and clothes are shown as lines only, with no paper, on the pet's head.
 
 Known ceiling: a freehand drawing reads as clothing only when the prompt asks for something wearable and small (a hat, a bow, a crown). Clothes prompts are written with that in mind. If clothes still look wrong in playtesting, the category is retired from the rotation. That is a content change, not a data change.
 
@@ -165,10 +174,11 @@ Known ceiling: a freehand drawing reads as clothing only when the prompt asks fo
 The inventory follows the waffle panel in the reference: a grid of 4 by 3 slots, with four tabs along the top.
 
 - Tabs: Food, Clothes, Scenery, Pets.
-- Each slot shows one owned item. Tapping a slot places or removes it in the scene.
-- Each item shows "made by u/name" when selected.
+- Each slot shows one owned item. Tapping a slot selects it, and the one cream button under the panel acts on it: Place or Take away for clothes and scenery, Feed for food.
+- The Food tab shows the pet's fullness beside the Feed button, and each food shows how many servings it has left.
+- Each item shows who made it when selected.
 - More than 12 items in a tab: previous and next page controls.
-- Empty tab: the slots stay empty with one line, "Play today to start your collection."
+- Empty tab: the slots stay empty with one line, "Play today to start your collection." The empty Food tab says instead that food comes from drawing on food days.
 
 The owner confirmed on 2026-11-16 that the four dot groups along the top of the panel are these four tabs. Each tab has a labelled button above its dot group, so the tabs can be found without guessing.
 
@@ -176,7 +186,7 @@ The owner confirmed on 2026-11-16 that the four dot groups along the top of the 
 
 | What the player did | What they get |
 |---|---|
-| Submitted on a day | The pet is fed that day. The rank 1 item of that day, once finalized. |
+| Submitted on a day | The rank 1 item of that day, once finalized. On a food day that item is food with 3 servings. |
 | Finished in the top 25 percent that day | Also the rank 2 and rank 3 items. |
 | Won the day | Their drawing is the rank 1 item with their name on it, plus the flair. |
 | Reached a streak of 7, then 30 | Unlock one more pet each time. |
@@ -226,9 +236,9 @@ React, TypeScript, Tailwind. The key units:
 
 - `DrawingArt`: a pure component. Input: an entry string and a size. Output: the drawing as round-capped SVG lines on paper, at any size. Used by the paper, gallery thumbnails, the result card, inventory slots, and scene items.
 - `Paper`: the editor. Owns drawing, the meter, the color picker, erasing, undo, and draft saving. Uses `DrawingArt` for display.
-- `PetScene`: composes the backdrop image, the pet sprite, scenery items, the bowl, and the wearable.
-- `Inventory`: the waffle panel with tabs, slots, and paging.
-- Screens: Pet pick, Start, Draw, Gallery, Result, and the closed-day view.
+- `PetScene`: composes the backdrop image, the pet sprite, scenery items, and the wearable.
+- `Inventory`: the waffle panel with tabs, slots, paging, and feeding.
+- Screens: Pet pick, Home, Draw, Gallery, Result, and the closed-day view.
 
 ### Art assets
 
@@ -251,12 +261,12 @@ Seven endpoints:
 | Endpoint | Purpose |
 |---|---|
 | `GET /api/day` | The post's day: prompt, line meter, open or closed, entry count, the viewer's entry, streak, hearts left, pet, and any claim summary. Performs the lazy claim. |
-| `POST /api/entry` | Validate and store the viewer's entry, update streak and fed state. |
+| `POST /api/entry` | Validate and store the viewer's entry, update the streak. |
 | `GET /api/gallery` | Next page of 12 entries for the viewer. |
 | `POST /api/heart` | Spend one heart on an entry. |
 | `GET /api/results` | For a closed day: top three and the viewer's rank. |
-| `GET /api/pet` | The viewer's pet, unlocked pets, placed items, and inventory. |
-| `POST /api/pet/update` | Choose or switch pet, place or remove an owned item. |
+| `GET /api/pet` | The viewer's pet, its fullness, unlocked pets, placed items, the inventory, and servings left on each food. |
+| `POST /api/pet/update` | Choose or switch pet, rename it, place or remove an owned item, feed it one serving of an owned food. |
 
 The server takes the user identity and post from the Devvit request context, never from the request body.
 
@@ -276,7 +286,8 @@ The server takes the user identity and post from the Devvit request context, nev
 | `reports:{day}:{entryUserId}` | set | Users who reported this entry |
 | `final:{day}` | hash | Entry count and each player's rank |
 | `item:{day}:{rank}` | hash | Entry string, colors, category, maker, revoked flag |
-| `player:{userId}` | hash | Streak, best streak, last played day, last claimed day, current pet, placed item ids |
+| `player:{userId}` | hash | Streak, best streak, last played day, last claimed day, current pet, placed item ids, fullness and the day it was last set |
+| `eaten:{userId}` | sorted set | Food item ids scored by servings eaten. A food with no score has all 3 servings |
 | `played:{userId}` | set | Day numbers the player submitted on |
 | `items:{userId}` | set | Item ids the player owns |
 | `pets:{userId}` | set | Pets the player has unlocked |
