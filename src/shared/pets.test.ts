@@ -1,5 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { cleanPetName, earnedRanks, isPetId, petSlots } from './pets';
+import {
+  cleanPetName,
+  earnedRanks,
+  fullnessOn,
+  isPetId,
+  petSlots,
+} from './pets';
+
+describe('fullnessOn', () => {
+  it('drops by one for each day since it was set, and stops at zero', () => {
+    expect(fullnessOn(3, 5, 5)).toBe(3);
+    expect(fullnessOn(3, 5, 6)).toBe(2);
+    expect(fullnessOn(3, 5, 8)).toBe(0);
+    expect(fullnessOn(1, 5, 40)).toBe(0);
+  });
+
+  it('never goes above the top of the meter or back in time', () => {
+    expect(fullnessOn(9, 5, 5)).toBe(3);
+    expect(fullnessOn(2, 5, 4)).toBe(2);
+  });
+});
 
 describe('isPetId', () => {
   it('accepts the three pets only', () => {

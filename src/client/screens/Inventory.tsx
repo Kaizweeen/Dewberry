@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { PETS } from '../../shared/pets';
+import { FULL_MAX, PETS } from '../../shared/pets';
 import type { PetId } from '../../shared/pets';
 import type { Item, PetAction, PetView } from '../../shared/types';
 import { ApiFailure, api } from '../api';
 import { DrawingArt } from '../draw/DrawingArt';
-import { pageCount, pageSlice, petLabel, unlockLine } from '../text';
-import { Icon, PET_PX } from '../ui';
+import { foodLine, pageCount, pageSlice, petLabel, unlockLine } from '../text';
+import { Fullness, Icon, PET_PX } from '../ui';
 
 const GENERIC = 'Something went wrong. Try again.';
 const messageOf = (err: unknown): string =>
   err instanceof ApiFailure ? err.message : GENERIC;
 
-type Tab = 'food' | 'clothes' | 'scenery' | 'pets';
+export type InventoryTab = 'food' | 'clothes' | 'scenery' | 'pets';
+type Tab = InventoryTab;
 
 // The four dot groups on panel.png sit in art row 1, at columns 2 to 6, 9 to 13,
 // 16 to 20 and 23 to 27 (the panel is drawn at 12 times, left 2, top 62). Each
@@ -32,32 +33,35 @@ const pocket = (i: number) => ({
 
 const placedIds = (pv: PetView): ReadonlySet<string> =>
   new Set(
-    [
-      pv.placed.food,
-      pv.placed.clothes,
-      pv.placed.sceneryBack,
-      pv.placed.sceneryFront,
-    ].flatMap((item) => (item === null ? [] : [item.id]))
+    [pv.placed.clothes, pv.placed.sceneryBack, pv.placed.sceneryFront].flatMap(
+      (item) => (item === null ? [] : [item.id])
+    )
   );
 
-/** The inventory: the waffle panel holds what the player owns, four tabs sort it. */
-export function Inventory(props: { onBack: () => void }) {
+/**
+ * The inventory: the waffle panel holds what the player owns, four tabs sort it.
+ * Clothes and scenery are placed with the pet. Food is fed to it, one serving at a time.
+ */
+export function Inventory(props: { onBack: () => void; start?: Tab }) {
   const [pv, setPv] = useState<PetView | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>('food');
+  const [tab, setTab] = useState<Tab>(props.start ?? 'food');
   const [page, setPage] = useState(0);
   const [sel, setSel] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const busy = useRef(false);
 
-  const load = () => {
-    setFailed(null);
+  const fetchPet = () => {
     api
       .pet()
       .then(setPv)
       .catch((err: unknown) => setFailed(messageOf(err)));
   };
-  useEffect(load, []);
+  const load = () => {
+    setFailed(null);
+    fetchPet();
+  };
+  useEffect(fetchPet, []);
 
   const run = async (action: PetAction) => {
     if (busy.current) return;
@@ -115,6 +119,8 @@ export function Inventory(props: { onBack: () => void }) {
 
   const placed = placedIds(pv);
   const onPets = tab === 'pets';
+  const onFood = tab === 'food';
+  const full = pv.fullness >= FULL_MAX;
   const items: Item[] = onPets
     ? []
     : pv.items.filter((i) => i.category === tab);
@@ -142,7 +148,8 @@ export function Inventory(props: { onBack: () => void }) {
     pages > 1
       ? `Page ${at + 1} of ${pages}. Tap a drawing to see it.`
       : 'Tap a drawing to see it.';
-  let action: { label: string; go: () => void } | null = null;
+  // Plain data, so the busy flag is only read when the button is pressed.
+  let action: { label: string; act: PetAction } | null = null;
   if (onPets) {
     text = 'Tap a pet.';
     if (pet !== undefined) {
@@ -153,20 +160,32 @@ export function Inventory(props: { onBack: () => void }) {
         text = `${petLabel(pet)} is unlocked.`;
         action = {
           label: 'Switch',
-          go: () => void run({ type: 'pick', pet }),
+          act: { type: 'pick', pet },
         };
       } else if (freeSlot) {
         text = `${petLabel(pet)} is waiting for you.`;
         action = {
           label: 'Unlock',
-          go: () => void run({ type: 'pick', pet }),
+          act: { type: 'pick', pet },
         };
       } else {
         text = unlockLine(pv.slots);
       }
     }
   } else if (items.length === 0) {
-    text = 'Play today to start your collection.';
+    text = onFood
+      ? 'No food yet. Draw on a food day to earn some.'
+      : 'Play today to start your collection.';
+  } else if (onFood) {
+    text = `Tap a food to feed ${pv.name}.`;
+    if (item !== undefined) {
+      text = foodLine(item, pv.servings[item.id] ?? 0, pv.name, full);
+      if (!full)
+        action = {
+          label: 'Feed',
+          act: { type: 'feed', itemId: item.id },
+        };
+    }
   } else if (item !== undefined) {
     const on = placed.has(item.id);
     text = `Day ${item.day}, made by u/${item.maker}. ${
@@ -174,7 +193,7 @@ export function Inventory(props: { onBack: () => void }) {
     }`;
     action = {
       label: on ? 'Take away' : 'Place',
-      go: () => void run({ type: 'toggle', itemId: item.id }),
+      act: { type: 'toggle', itemId: item.id },
     };
   }
   if (note !== null) text = note;
@@ -283,7 +302,9 @@ export function Inventory(props: { onBack: () => void }) {
               style={pocket(i)}
               aria-label={`${petLabel(it.category)} by u/${it.maker}, day ${
                 it.day
-              }${placed.has(it.id) ? ', on your pet' : ''}`}
+              }${placed.has(it.id) ? ', on your pet' : ''}${
+                onFood ? `, servings left: ${pv.servings[it.id] ?? 0}` : ''
+              }`}
               aria-pressed={sel === it.id}
               onClick={() => select(it.id)}
             >
@@ -293,6 +314,11 @@ export function Inventory(props: { onBack: () => void }) {
                   <Icon name="check" />
                 </span>
               )}
+              {onFood && (
+                <span className="servings" aria-hidden="true">
+                  {pv.servings[it.id] ?? 0}
+                </span>
+              )}
             </button>
           ))}
       <div
@@ -300,7 +326,7 @@ export function Inventory(props: { onBack: () => void }) {
         style={{
           left: 12,
           top: 404,
-          width: action === null ? 351 : 235,
+          width: action === null && !onFood ? 351 : 235,
           height: 88,
         }}
       >
@@ -318,20 +344,39 @@ export function Inventory(props: { onBack: () => void }) {
           </p>
         </div>
       </div>
+      {onFood && (
+        // Fullness is always in sight on the Food tab: small above the Feed button,
+        // large when there is nothing to feed.
+        <div
+          className="px"
+          style={{
+            left: 255,
+            top: 404,
+            width: 108,
+            height: action === null ? 88 : 36,
+          }}
+        >
+          <Fullness
+            full={pv.fullness}
+            name={pv.name}
+            size={action === null ? 28 : 21}
+          />
+        </div>
+      )}
       {action !== null && (
         <div
           style={{
             position: 'absolute',
             left: 255,
-            top: 404,
+            top: onFood ? 444 : 404,
             width: 108,
-            height: 88,
+            height: onFood ? 48 : 88,
           }}
         >
           <button
             className="px in btn primary t16"
             style={{ width: '100%', height: '100%' }}
-            onClick={action.go}
+            onClick={() => void run(action.act)}
           >
             {action.label}
           </button>

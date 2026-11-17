@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { FULL_MAX } from '../shared/pets';
 import type { PetId } from '../shared/pets';
 import type { Item, Placed } from '../shared/types';
 import { DrawingArt } from './draw/DrawingArt';
@@ -79,6 +80,24 @@ const ICONS = {
     '#######',
   ],
   check: ['......#', '.....##', '#...##.', '##.##..', '.###...', '..#....'],
+  berry: [
+    '....#..',
+    '..###..',
+    '.#####.',
+    '#######',
+    '#######',
+    '.#####.',
+    '..###..',
+  ],
+  berryEmpty: [
+    '....#..',
+    '..###..',
+    '.#...#.',
+    '#.....#',
+    '#.....#',
+    '.#...#.',
+    '..###..',
+  ],
   more: ['...#...', '....#..', '######.', '....#..', '...#...'],
   sleep: [
     '#####.#####',
@@ -103,6 +122,8 @@ export type IconName = keyof typeof ICONS;
 const ICON_FILL: Partial<Record<IconName, string>> = {
   heart: 'var(--heart)',
   heartEmpty: 'var(--line)',
+  berry: 'var(--berry)',
+  berryEmpty: 'var(--line)',
 };
 
 /** A pixel icon. Without a size it fills its parent's width. */
@@ -169,6 +190,26 @@ export function Hearts(props: { left: number }) {
   );
 }
 
+/** The pet's fullness: three dewberries, `full` of them filled. `size` is one berry, in pixels. */
+export function Fullness(props: { full: number; name: string; size: number }) {
+  return (
+    <div
+      className="berries"
+      role="img"
+      aria-label={`${props.name}: ${props.full} of ${FULL_MAX} full`}
+    >
+      {Array.from({ length: FULL_MAX }, (_, i) => (
+        <Icon
+          key={i}
+          name={i < props.full ? 'berry' : 'berryEmpty'}
+          width={props.size}
+          height={props.size}
+        />
+      ))}
+    </div>
+  );
+}
+
 /** Native sizes of the pet sprites, in art pixels. */
 export const PET_PX = {
   star: { w: 9, h: 9 },
@@ -218,7 +259,7 @@ function Card(props: { item: Item; x: number; y: number; size: number }) {
 /** The bush, the shadow, the pet at 12 times its size, and what is placed with it. */
 export function PetScene(props: {
   pet: PetId;
-  fed: boolean;
+  fullness: number;
   placed: Placed;
   name?: string;
   onPet?: () => void;
@@ -230,7 +271,8 @@ export function PetScene(props: {
   const h = px.h * SCENE_SCALE;
   const name =
     props.name !== undefined && props.name !== '' ? props.name : capital(pet);
-  const alt = `Your pet, ${name}${props.fed ? '' : ', is sleepy'}`;
+  const hungry = props.fullness <= 0;
+  const alt = `Your pet, ${name}${hungry ? ', is hungry and sleepy' : ''}`;
   const sprite = {
     left: SCENE_X - w / 2,
     top: SCENE_FEET - h,
@@ -275,9 +317,6 @@ export function PetScene(props: {
           </span>
         </button>
       )}
-      {placed.food !== null && (
-        <Card item={placed.food} x={240} y={124} size={40} />
-      )}
       {placed.clothes !== null && (
         <span
           className="art card"
@@ -295,7 +334,7 @@ export function PetScene(props: {
           />
         </span>
       )}
-      {!props.fed && (
+      {hungry && (
         <span
           style={{
             position: 'absolute',

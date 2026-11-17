@@ -5,13 +5,22 @@ import { ClaimCard } from './screens/ClaimCard';
 import { Closed } from './screens/Closed';
 import { Draw } from './screens/Draw';
 import { Gallery } from './screens/Gallery';
+import { Home } from './screens/Home';
 import { Inventory } from './screens/Inventory';
+import type { InventoryTab } from './screens/Inventory';
 import { PetPick } from './screens/PetPick';
 import { Result } from './screens/Result';
-import { Start } from './screens/Start';
+import type { HomeStep } from './text';
 import { Stage } from './ui';
 
-type Screen = 'start' | 'draw' | 'gallery' | 'result' | 'closed' | 'inventory';
+type Screen = 'home' | 'draw' | 'gallery' | 'result' | 'closed' | 'inventory';
+
+// Where the home page's main button leads, for each step of the day.
+const STEP_SCREEN = {
+  draw: 'draw',
+  hearts: 'gallery',
+  mine: 'result',
+} as const satisfies Record<HomeStep, Screen>;
 type Failure = { status: number; message: string };
 
 const toFailure = (err: unknown): Failure =>
@@ -52,7 +61,8 @@ function Plate(props: {
 export function App() {
   const [view, setView] = useState<DayView | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
-  const [screen, setScreen] = useState<Screen>('start');
+  const [screen, setScreen] = useState<Screen>('home');
+  const [invTab, setInvTab] = useState<InventoryTab>('clothes');
   // The server hands a claim out once. It is kept here until the player dismisses it.
   const [claim, setClaim] = useState<Claim | null>(null);
   const loadingRef = useRef(false);
@@ -82,9 +92,8 @@ export function App() {
       .then((v) => {
         keepClaim(v);
         setView(v);
-        setScreen(
-          v.open ? (v.myEntry === null ? 'start' : 'result') : 'closed'
-        );
+        // An open day always starts at the pet's home.
+        setScreen(v.open ? 'home' : 'closed');
       })
       .catch((err: unknown) => setFailure(toFailure(err)))
       .finally(() => {
@@ -130,20 +139,24 @@ export function App() {
   }
   if (view === null) return <Plate status>Loading</Plate>;
 
-  // Result needs a drawing to show. Without one the player starts at Start.
+  // Result needs a drawing to show. Without one the player goes home.
   const current =
-    screen === 'result' && view.myEntry === null ? 'start' : screen;
+    screen === 'result' && view.myEntry === null ? 'home' : screen;
   // The pick and the claim card come before a screen. The pick is on the grass.
   // A claim that arrives mid-play waits: it never interrupts drawing or the gallery.
   const calm =
-    current === 'start' || current === 'result' || current === 'closed';
+    current === 'home' || current === 'result' || current === 'closed';
+  const openInventory = (tab: InventoryTab) => {
+    setInvTab(tab);
+    setScreen('inventory');
+  };
   const before =
     view.pet === null ? 'pick' : claim !== null && calm ? 'claim' : null;
   return (
     <Stage
       horizon={
         before === 'pick' ||
-        (before === null && (current === 'start' || current === 'result'))
+        (before === null && (current === 'home' || current === 'result'))
           ? 'high'
           : 'low'
       }
@@ -160,18 +173,20 @@ export function App() {
     if (view === null || view.pet === null) return null;
     const pet = view.pet;
     switch (shown) {
-      case 'start':
+      case 'home':
         return (
-          <Start
+          <Home
             view={view}
             pet={pet}
-            onPlay={() => setScreen('draw')}
-            onInventory={() => setScreen('inventory')}
+            onStep={(step) => setScreen(STEP_SCREEN[step])}
+            onFeed={() => openInventory('food')}
+            onInventory={() => openInventory('clothes')}
             onPetChanged={(p: PetView) =>
               setView({
                 ...view,
                 pet: p.pet,
                 petName: p.name,
+                fullness: p.fullness,
                 placed: p.placed,
               })
             }
@@ -181,13 +196,12 @@ export function App() {
         return (
           <Draw
             view={view}
-            onHome={() => setScreen('start')}
+            onHome={() => setScreen('home')}
             onClosed={showClosed}
             onSubmitted={(result) => {
               setView({
                 ...view,
                 myEntry: result.entry,
-                fed: true,
                 streak: result.streak,
                 entryCount: view.entryCount + 1,
               });
@@ -214,12 +228,13 @@ export function App() {
             view={view}
             pet={pet}
             onGiveHearts={() => setScreen('gallery')}
+            onHome={() => setScreen('home')}
           />
         );
       case 'inventory':
         // Back reloads the day, so the scene shows what changed. A claim card
         // kept in state survives the reload (keepClaim never erases it).
-        return <Inventory onBack={load} />;
+        return <Inventory start={invTab} onBack={load} />;
       case 'closed':
         return <Closed view={view} pet={pet} />;
     }

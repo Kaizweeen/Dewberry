@@ -33,7 +33,7 @@ export async function getDayView(
 ): Promise<DayView> {
   const content = contentForDay(a.day);
   const today = await currentDay(store);
-  const [myEntry, entryCount, heartsUsed, myHearts, player, todayPostId, fed] =
+  const [myEntry, entryCount, heartsUsed, myHearts, player, todayPostId] =
     await Promise.all([
       store.hGet(keys.entries(a.day), a.userId),
       store.hLen(keys.entries(a.day)),
@@ -41,7 +41,6 @@ export async function getDayView(
       store.zScore(keys.hearts(a.day), a.userId),
       playerState(store, a.userId),
       store.get(keys.dayPost(today)),
-      store.hGet(keys.entries(today), a.userId),
     ]);
   const claim = await claimRewards(store, a.userId);
   const pet = await getPetView(store, a.userId);
@@ -61,7 +60,7 @@ export async function getDayView(
     heartsLeft: HEARTS_PER_DAY - heartsUsed,
     pet: pet.pet,
     petName: pet.name,
-    fed: fed !== undefined,
+    fullness: pet.fullness,
     placed: pet.placed,
     claim,
   };

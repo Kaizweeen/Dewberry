@@ -1,7 +1,10 @@
 import {
+  FULL_MAX,
   PETS,
+  SERVINGS,
   cleanPetName,
   earnedRanks,
+  fullnessOn,
   isPetId,
   petSlots,
 } from '../shared/pets';
@@ -106,36 +109,57 @@ export async function getPetView(
   store: Store,
   userId: string
 ): Promise<PetView> {
-  const [p, owned, unlockedHash] = await Promise.all([
+  const [p, owned, unlockedHash, eaten, today] = await Promise.all([
     store.hGetAll(keys.player(userId)),
     store.hGetAll(keys.items(userId)),
     store.hGetAll(keys.pets(userId)),
+    store.zAll(keys.eaten(userId)),
+    dayNow(store),
   ]);
+  const eatenOf = new Map(eaten.map((e) => [e.member, e.score]));
+  // A food with no servings left is gone, even if removing it from the hash failed.
+  const left = (i: Item) => SERVINGS - (eatenOf.get(i.id) ?? 0);
   const items = (
     await Promise.all(Object.keys(owned).map((id) => itemFromId(store, id)))
   )
-    .flatMap((i) => (i ? [i] : []))
+    .flatMap((i) => (i && (i.category !== 'food' || left(i) > 0) ? [i] : []))
     .sort((a, b) => b.day - a.day || a.rank - b.rank);
   const find = (id: string | undefined) =>
     items.find((i) => i.id === id) ?? null;
   const placed: Placed = {
-    food: find(p.food),
     clothes: find(p.clothes),
     sceneryBack: find(p.sceneryBack),
     sceneryFront: find(p.sceneryFront),
   };
   const pet = isPetId(p.pet) ? p.pet : null;
+  let fullness = FULL_MAX;
+  if (pet !== null && p.full === undefined) {
+    // A pet starts full. Written once, the first time the pet is seen.
+    await store.hSet(keys.player(userId), {
+      full: String(FULL_MAX),
+      fullDay: String(today),
+    });
+  } else if (pet !== null) {
+    fullness = fullnessOn(Number(p.full), Number(p.fullDay ?? today), today);
+  }
   return {
     pet,
     name: pet === null ? '' : p.petName || capital(pet),
     unlocked: PETS.filter((id) => id in unlockedHash),
     slots: petSlots(Number(p.best ?? 0)),
+    fullness,
     placed,
     items,
+    servings: Object.fromEntries(
+      items.flatMap((i) => (i.category === 'food' ? [[i.id, left(i)]] : []))
+    ),
   };
 }
 
-type Slot = 'food' | 'clothes' | 'sceneryBack' | 'sceneryFront';
+const dayNow = async (store: Store) =>
+  Number((await store.get(keys.currentDay)) ?? 0);
+
+type Slot = 'clothes' | 'sceneryBack' | 'sceneryFront';
 
 export async function updatePet(
   store: Store,
@@ -187,12 +211,12 @@ export async function updatePet(
         ? await itemFromId(store, itemId)
         : null;
     if (!item) return fail('That item is not yours.');
+    if (item.category === 'food') return fail('Food is for eating.');
     const p = await store.hGetAll(player);
     const set = (slot: Slot) => store.hSet(player, { [slot]: item.id });
-    if (item.category !== 'scenery') {
-      const slot = item.category;
-      if (p[slot] === item.id) await store.hDel(player, [slot]);
-      else await set(slot);
+    if (item.category === 'clothes') {
+      if (p.clothes === item.id) await store.hDel(player, ['clothes']);
+      else await set('clothes');
     } else if (p.sceneryBack === item.id) {
       await store.hDel(player, ['sceneryBack']);
     } else if (p.sceneryFront === item.id) {
@@ -206,6 +230,38 @@ export async function updatePet(
             : 'sceneryBack'
       );
     }
+    return done();
+  }
+
+  if (act.type === 'feed') {
+    const itemId: unknown = 'itemId' in act ? act.itemId : undefined;
+    if (typeof itemId !== 'string') return fail(BAD_ACTION);
+    const view = await getPetView(store, a.userId);
+    if (view.pet === null) return fail(BAD_ACTION);
+    const food = view.items.find((i) => i.id === itemId);
+    if (!food) return fail('That item is not yours.');
+    if (food.category !== 'food') return fail('Only food can be eaten.');
+    // ponytail: fullness is read, then written. Two feeds at the very same moment
+    // could both add to the same number and cost one serving too many. The client
+    // sends one at a time. Use a Redis transaction if it ever matters.
+    if (view.fullness >= FULL_MAX) return fail(`${view.name} is full.`);
+    const eaten = keys.eaten(a.userId);
+    const used = await store.zIncrBy(eaten, itemId, 1);
+    if (used > SERVINGS) {
+      await store.zIncrBy(eaten, itemId, -1);
+      return fail('That food is all gone.');
+    }
+    try {
+      await store.hSet(player, {
+        full: String(view.fullness + 1),
+        fullDay: String(await dayNow(store)),
+      });
+    } catch (err) {
+      // Give the serving back, or a store error here would eat it for nothing.
+      await store.zIncrBy(eaten, itemId, -1);
+      throw err;
+    }
+    if (used >= SERVINGS) await store.hDel(keys.items(a.userId), [itemId]);
     return done();
   }
 

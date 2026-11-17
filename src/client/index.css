@@ -13,6 +13,7 @@
   --caramel-lo: #c8873d;
   --toast: #6b4420;
   --heart: #ff5e55;
+  --berry: #6b53b8;
   --cell: #e2e2e2;
   --cell-line: #cecece;
   --paper: #fbf7ec;
@@ -484,6 +485,29 @@ body {
 .hearts {
   display: flex;
   gap: var(--u);
+}
+/* Fullness: three dewberries, centered in their plate. */
+.berries {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--u);
+  height: 100%;
+}
+/* How many servings a food has left, on its pocket. */
+.entry .servings {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 20px;
+  height: 20px;
+  background: var(--plate);
+  color: var(--ink);
+  box-shadow: 0 0 0 2px var(--line);
+  font-family: 'Silkscreen', monospace;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
 }
 .heartbar {
   display: flex;

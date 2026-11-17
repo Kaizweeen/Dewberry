@@ -9,6 +9,41 @@ export function drawingsText(count: number): string {
   return `${count} ${count === 1 ? 'drawing' : 'drawings'}`;
 }
 
+export type HomeStep = 'draw' | 'hearts' | 'mine';
+
+/** What the home page's main button leads to: drawing, then giving hearts, then your drawing. */
+export function homeStep(v: {
+  myEntry: string | null;
+  heartsLeft: number;
+}): HomeStep {
+  if (v.myEntry === null) return 'draw';
+  return v.heartsLeft > 0 ? 'hearts' : 'mine';
+}
+
+/** The line under the prompt on the home page: where the player's day stands. */
+export function homeLine(step: HomeStep, heartsLeft: number): string {
+  if (step === 'draw')
+    return 'Any colors you like. One line meter for all of them.';
+  if (step === 'hearts')
+    return `Your drawing is in. You have ${heartsLeft} ${
+      heartsLeft === 1 ? 'heart' : 'hearts'
+    } to give.`;
+  return 'Your drawing is in. Results at 12:00 UTC.';
+}
+
+/** What the inventory says about a chosen food. */
+export function foodLine(
+  food: { day: number; maker: string },
+  servings: number,
+  petName: string,
+  full: boolean
+): string {
+  if (full) return `${petName} is full. Come back tomorrow.`;
+  return `Day ${food.day}, by u/${food.maker}. ${servings} ${
+    servings === 1 ? 'serving' : 'servings'
+  } left.`;
+}
+
 /** "Star", from a pet id. */
 export function petLabel(pet: string): string {
   return pet.charAt(0).toUpperCase() + pet.slice(1);

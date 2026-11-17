@@ -16,7 +16,8 @@ export type DayView = {
   heartsLeft: number;
   pet: PetId | null;
   petName: string;
-  fed: boolean;
+  /** 0 to FULL_MAX. Drops by one each new day, rises by one per serving fed. */
+  fullness: number;
   placed: Placed;
   claim: Claim | null;
 };
@@ -59,7 +60,6 @@ export type Item = {
 };
 
 export type Placed = {
-  food: Item | null;
   clothes: Item | null;
   sceneryBack: Item | null;
   sceneryFront: Item | null;
@@ -75,14 +75,18 @@ export type PetView = {
   name: string;
   unlocked: PetId[];
   slots: number;
+  fullness: number;
   placed: Placed;
   items: Item[];
+  /** Servings left on each owned food, by item id. */
+  servings: Record<string, number>;
 };
 
 export type PetAction =
   | { type: 'pick'; pet: PetId }
   | { type: 'name'; name: string }
-  | { type: 'toggle'; itemId: string };
+  | { type: 'toggle'; itemId: string }
+  | { type: 'feed'; itemId: string };
 
 export type PetResult =
   { ok: true; pet: PetView } | { ok: false; reason: string };

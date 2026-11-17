@@ -9,6 +9,7 @@ export function Result(props: {
   view: DayView;
   pet: PetId;
   onGiveHearts: () => void;
+  onHome: () => void;
 }) {
   const { view } = props;
   const left = view.heartsLeft;
@@ -16,10 +17,18 @@ export function Result(props: {
     <>
       <PetScene
         pet={props.pet}
-        fed={view.fed}
+        fullness={view.fullness}
         placed={view.placed}
         name={view.petName}
       />
+      <button
+        className="artbtn"
+        style={{ left: 12, top: 12, width: 44, height: 44 }}
+        aria-label="Home"
+        onClick={props.onHome}
+      >
+        <img src="/art/home-btn.png" alt="" />
+      </button>
       <div className="px tab t16" style={{ right: 12, top: 12 }}>
         <span>Day {view.day}</span>
       </div>

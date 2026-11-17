@@ -2,11 +2,57 @@ import { describe, expect, it } from 'vitest';
 import {
   claimItemsShown,
   claimLines,
+  foodLine,
+  homeLine,
+  homeStep,
   pageCount,
   pageSlice,
   petLabel,
   unlockLine,
 } from './text';
+
+describe('homeStep', () => {
+  it('goes from drawing, to giving hearts, to looking at your drawing', () => {
+    expect(homeStep({ myEntry: null, heartsLeft: 5 })).toBe('draw');
+    expect(homeStep({ myEntry: '[]', heartsLeft: 2 })).toBe('hearts');
+    expect(homeStep({ myEntry: '[]', heartsLeft: 0 })).toBe('mine');
+  });
+});
+
+describe('homeLine', () => {
+  it('says where the day stands', () => {
+    expect(homeLine('draw', 5)).toBe(
+      'Any colors you like. One line meter for all of them.'
+    );
+    expect(homeLine('hearts', 1)).toBe(
+      'Your drawing is in. You have 1 heart to give.'
+    );
+    expect(homeLine('hearts', 4)).toBe(
+      'Your drawing is in. You have 4 hearts to give.'
+    );
+    expect(homeLine('mine', 0)).toBe(
+      'Your drawing is in. Results at 12:00 UTC.'
+    );
+  });
+});
+
+describe('foodLine', () => {
+  const food = { day: 3, maker: 'ana' };
+  it('counts the servings left', () => {
+    expect(foodLine(food, 2, 'Mochi', false)).toBe(
+      'Day 3, by u/ana. 2 servings left.'
+    );
+    expect(foodLine(food, 1, 'Mochi', false)).toBe(
+      'Day 3, by u/ana. 1 serving left.'
+    );
+  });
+
+  it('says so when the pet is full', () => {
+    expect(foodLine(food, 2, 'Mochi', true)).toBe(
+      'Mochi is full. Come back tomorrow.'
+    );
+  });
+});
 
 describe('pageCount', () => {
   it('keeps one page for an empty tab', () => {

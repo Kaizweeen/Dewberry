@@ -137,13 +137,159 @@ describe('claimRewards', () => {
     const args = { day: 2, userId: 'u1', postId: 'post2' };
     const first = await getDayView(store, args);
     expect(ids(first.claim?.items ?? [])).toEqual(['1:1', '1:2', '1:3']);
-    expect(first.fed).toBe(false);
     expect((await getDayView(store, args)).claim).toBeNull();
+  });
+});
+
+/** Two foods, two clothes, and three scenery items owned by u1, who has picked Star. */
+async function seed(store: Store) {
+  const made: [string, string][] = [
+    ['1:1', 'food'],
+    ['1:2', 'food'],
+    ['2:1', 'clothes'],
+    ['2:2', 'clothes'],
+    ['3:1', 'scenery'],
+    ['3:2', 'scenery'],
+    ['3:3', 'scenery'],
+  ];
+  for (const [id, category] of made) {
+    const [day, rank] = id.split(':');
+    await store.hSet(keys.item(Number(day), Number(rank)), {
+      entry: lineEntry(),
+      category,
+      maker: 'm',
+      makerId: 'x',
+    });
+    await store.hSet(keys.items('u1'), { [id]: '1' });
+  }
+  await update(store, { type: 'pick', pet: 'star' });
+}
+
+describe('fullness', () => {
+  const fullness = async (store: Store) =>
+    (await getPetView(store, 'u1')).fullness;
+
+  it('starts full, drops by one each new day, and stops at zero', async () => {
+    const store = await startedStore();
+    await update(store, { type: 'pick', pet: 'star' });
+    expect(await fullness(store)).toBe(3);
+    await roll(store, 1);
+    expect(await fullness(store)).toBe(2);
+    for (const now of [2, 3, 4]) await roll(store, now);
+    expect(await fullness(store)).toBe(0);
+  });
+
+  it('is in the day view, and drawing does not change it', async () => {
+    const store = await startedStore();
+    await update(store, { type: 'pick', pet: 'star' });
+    await roll(store, 1);
+    const args = { day: 2, userId: 'u1', postId: 'post2' };
+    expect((await getDayView(store, args)).fullness).toBe(2);
     await submit(store, 2, 'u1', 300);
-    expect((await getDayView(store, args)).fed).toBe(true);
-    // Viewing the old post does not make the player fed today.
-    const old = await getDayView(store, { ...args, day: 1, postId: 'post1' });
-    expect(old.fed).toBe(true);
+    expect((await getDayView(store, args)).fullness).toBe(2);
+  });
+
+  it('starts full for a pet picked before fullness existed', async () => {
+    const store = await startedStore();
+    await store.hSet(keys.player('u1'), { pet: 'slime' });
+    expect(await fullness(store)).toBe(3);
+    await roll(store, 1);
+    expect(await fullness(store)).toBe(2);
+  });
+});
+
+describe('feed', () => {
+  const feed = (store: Store, itemId: unknown) =>
+    update(store, { type: 'feed', itemId });
+  const hungry = (store: Store, full = 0) =>
+    store.hSet(keys.player('u1'), { full: String(full), fullDay: '0' });
+
+  it('adds one to fullness and uses one serving', async () => {
+    const store = memoryStore();
+    await seed(store);
+    expect((await getPetView(store, 'u1')).servings).toEqual({
+      '1:1': 3,
+      '1:2': 3,
+    });
+    await hungry(store);
+    expect(await feed(store, '1:1')).toMatchObject({
+      ok: true,
+      pet: { fullness: 1, servings: { '1:1': 2, '1:2': 3 } },
+    });
+  });
+
+  it('takes a food away after its third serving', async () => {
+    const store = memoryStore();
+    await seed(store);
+    await hungry(store);
+    await feed(store, '1:1');
+    await feed(store, '1:1');
+    const last = await feed(store, '1:1');
+    expect(last).toMatchObject({ ok: true, pet: { fullness: 3 } });
+    const view = await getPetView(store, 'u1');
+    expect(ids(view.items)).not.toContain('1:1');
+    expect(view.servings).toEqual({ '1:2': 3 });
+    await hungry(store);
+    expect(await feed(store, '1:1')).toEqual({
+      ok: false,
+      reason: 'That item is not yours.',
+    });
+  });
+
+  it('refuses when the pet is full, and keeps the serving', async () => {
+    const store = memoryStore();
+    await seed(store);
+    expect(await feed(store, '1:1')).toEqual({
+      ok: false,
+      reason: 'Star is full.',
+    });
+    expect((await getPetView(store, 'u1')).servings['1:1']).toBe(3);
+  });
+
+  it('refuses clothes, items of other players, and nonsense', async () => {
+    const store = memoryStore();
+    await seed(store);
+    await hungry(store);
+    expect(await feed(store, '2:1')).toEqual({
+      ok: false,
+      reason: 'Only food can be eaten.',
+    });
+    expect(await feed(store, '9:1')).toEqual({
+      ok: false,
+      reason: 'That item is not yours.',
+    });
+    expect(await feed(store, 5)).toMatchObject({ ok: false });
+  });
+
+  it('needs a pet', async () => {
+    expect(await feed(memoryStore(), '1:1')).toMatchObject({ ok: false });
+  });
+
+  it('gives the serving back when the store fails', async () => {
+    const store = memoryStore();
+    await seed(store);
+    await hungry(store);
+    const flaky: Store = {
+      ...store,
+      hSet: (key, fields) =>
+        key === keys.player('u1')
+          ? Promise.reject(new Error('store down'))
+          : store.hSet(key, fields),
+    };
+    await expect(feed(flaky, '1:1')).rejects.toThrow('store down');
+    expect((await getPetView(store, 'u1')).servings['1:1']).toBe(3);
+  });
+
+  it('counts hunger from the day the pet was fed', async () => {
+    const store = await startedStore();
+    await seed(store);
+    for (const now of [1, 2, 3]) await roll(store, now);
+    expect(await feed(store, '1:1')).toMatchObject({
+      ok: true,
+      pet: { fullness: 1 },
+    });
+    await roll(store, 4);
+    expect((await getPetView(store, 'u1')).fullness).toBe(0);
   });
 });
 
@@ -155,13 +301,14 @@ describe('getPetView', () => {
       name: '',
       unlocked: [],
       slots: 1,
+      fullness: 3,
       placed: {
-        food: null,
         clothes: null,
         sceneryBack: null,
         sceneryFront: null,
       },
       items: [],
+      servings: {},
     });
   });
 
@@ -267,35 +414,21 @@ describe('name', () => {
 });
 
 describe('toggle', () => {
-  const seed = async (store: Store) => {
-    const made: [string, string][] = [
-      ['1:1', 'food'],
-      ['1:2', 'food'],
-      ['2:1', 'clothes'],
-      ['3:1', 'scenery'],
-      ['3:2', 'scenery'],
-      ['3:3', 'scenery'],
-    ];
-    for (const [id, category] of made) {
-      const [day, rank] = id.split(':');
-      await store.hSet(keys.item(Number(day), Number(rank)), {
-        entry: lineEntry(),
-        category,
-        maker: 'm',
-        makerId: 'x',
-      });
-      await store.hSet(keys.items('u1'), { [id]: '1' });
-    }
-    await update(store, { type: 'pick', pet: 'star' });
-  };
   const toggle = (store: Store, itemId: string) =>
     update(store, { type: 'toggle', itemId });
   const placed = async (store: Store) => {
     const p = (await getPetView(store, 'u1')).placed;
-    return [p.food, p.clothes, p.sceneryBack, p.sceneryFront].map(
-      (i) => i?.id ?? null
-    );
+    return [p.clothes, p.sceneryBack, p.sceneryFront].map((i) => i?.id ?? null);
   };
+
+  it('refuses food, which is eaten and never placed', async () => {
+    const store = memoryStore();
+    await seed(store);
+    expect(await toggle(store, '1:1')).toEqual({
+      ok: false,
+      reason: 'Food is for eating.',
+    });
+  });
 
   it('refuses an item the player does not own', async () => {
     const store = memoryStore();
@@ -313,17 +446,15 @@ describe('toggle', () => {
     });
   });
 
-  it('places, replaces, and removes food and clothes', async () => {
+  it('places, replaces, and removes clothes', async () => {
     const store = memoryStore();
     await seed(store);
-    await toggle(store, '1:1');
     await toggle(store, '2:1');
-    expect(await placed(store)).toEqual(['1:1', '2:1', null, null]);
-    await toggle(store, '1:2');
-    expect(await placed(store)).toEqual(['1:2', '2:1', null, null]);
-    await toggle(store, '1:2');
-    await toggle(store, '2:1');
-    expect(await placed(store)).toEqual([null, null, null, null]);
+    expect(await placed(store)).toEqual(['2:1', null, null]);
+    await toggle(store, '2:2');
+    expect(await placed(store)).toEqual(['2:2', null, null]);
+    await toggle(store, '2:2');
+    expect(await placed(store)).toEqual([null, null, null]);
   });
 
   it('fills scenery back then front, then replaces back, and removes from either', async () => {
@@ -331,21 +462,21 @@ describe('toggle', () => {
     await seed(store);
     await toggle(store, '3:1');
     await toggle(store, '3:2');
-    expect(await placed(store)).toEqual([null, null, '3:1', '3:2']);
+    expect(await placed(store)).toEqual([null, '3:1', '3:2']);
     await toggle(store, '3:3');
-    expect(await placed(store)).toEqual([null, null, '3:3', '3:2']);
+    expect(await placed(store)).toEqual([null, '3:3', '3:2']);
     await toggle(store, '3:2');
-    expect(await placed(store)).toEqual([null, null, '3:3', null]);
+    expect(await placed(store)).toEqual([null, '3:3', null]);
     await toggle(store, '3:3');
-    expect(await placed(store)).toEqual([null, null, null, null]);
+    expect(await placed(store)).toEqual([null, null, null]);
   });
 
   it('does not show a placed item that is no longer owned', async () => {
     const store = memoryStore();
     await seed(store);
-    await toggle(store, '1:1');
-    await store.hDel(keys.items('u1'), ['1:1']);
-    expect(await placed(store)).toEqual([null, null, null, null]);
+    await toggle(store, '2:1');
+    await store.hDel(keys.items('u1'), ['2:1']);
+    expect(await placed(store)).toEqual([null, null, null]);
   });
 });
 

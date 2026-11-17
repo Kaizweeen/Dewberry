@@ -3,6 +3,19 @@ import { topCutoff } from './ranking';
 export const PETS = ['star', 'slime', 'angel'] as const;
 export type PetId = (typeof PETS)[number];
 export const PET_NAME_MAX = 10;
+/** The pet's fullness runs from 0 to FULL_MAX. */
+export const FULL_MAX = 3;
+/** How many times one food can be fed before it is gone. */
+export const SERVINGS = 3;
+
+/** Fullness today: what it was on `fullDay`, less 1 for each day since, never below 0. */
+export function fullnessOn(
+  full: number,
+  fullDay: number,
+  today: number
+): number {
+  return Math.max(0, Math.min(full, FULL_MAX) - Math.max(0, today - fullDay));
+}
 
 export const isPetId = (v: unknown): v is PetId => PETS.some((p) => p === v);
 

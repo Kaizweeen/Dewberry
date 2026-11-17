@@ -37,4 +37,5 @@ export const keys = {
   pets: (userId: string) => `pets:${userId}`,
   items: (userId: string) => `items:${userId}`,
   claimed: (userId: string) => `claimed:${userId}`,
+  eaten: (userId: string) => `eaten:${userId}`,
 };
