@@ -549,6 +549,26 @@ body {
   gap: var(--u);
 }
 
+/* The slime eating, played once after a feed. slime-fed.png is one strip of
+   14 frames, 22 x 14 each, drawn here at 3 times and stepped at 130ms a frame.
+   At rest it shows the last frame, so nothing flashes when the run ends. */
+.fed {
+  flex: none;
+  width: 66px;
+  height: 42px;
+  background: url('/art/slime-fed.png') -858px 0 / 924px 42px no-repeat;
+  image-rendering: pixelated;
+  animation: fed 1820ms steps(14) 1;
+}
+@keyframes fed {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -924px;
+  }
+}
+
 /* Pets: things placed in the scene, the pick buttons, the name plate */
 .card {
   position: absolute;

@@ -31,6 +31,16 @@ const pocket = (i: number) => ({
   height: 48,
 });
 
+// The preview slot on the plate, when it holds a pet instead of a drawing.
+const SLOT = {
+  width: 64,
+  height: 64,
+  flex: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+} as const;
+
 const placedIds = (pv: PetView): ReadonlySet<string> =>
   new Set(
     [pv.placed.clothes, pv.placed.sceneryBack, pv.placed.sceneryFront].flatMap(
@@ -49,6 +59,9 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
   const [page, setPage] = useState(0);
   const [sel, setSel] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  // Set while the pet eats in the preview slot. The number restarts the
+  // animation when the pet is fed again before it finishes.
+  const [eating, setEating] = useState<number | null>(null);
   const busy = useRef(false);
 
   const fetchPet = () => {
@@ -69,8 +82,17 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
     setNote(null);
     try {
       const result = await api.updatePet(action);
-      if (result.ok) setPv(result.pet);
-      else setNote(result.reason);
+      if (result.ok) {
+        setPv(result.pet);
+        // Only the slime has eating frames so far. With reduced motion nothing
+        // animates: the line of text and the berries already say it was fed.
+        if (
+          action.type === 'feed' &&
+          result.pet.pet === 'slime' &&
+          !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        )
+          setEating((n) => (n ?? 0) + 1);
+      } else setNote(result.reason);
     } catch (err) {
       setNote(messageOf(err));
     } finally {
@@ -135,10 +157,12 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
     setPage(0);
     setSel(null);
     setNote(null);
+    setEating(null);
   };
   const select = (id: string) => {
     setSel(id);
     setNote(null);
+    setEating(null);
   };
 
   // What the plate under the panel says, and the one cream button (if any).
@@ -199,6 +223,19 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
   if (note !== null) text = note;
 
   const preview = (() => {
+    if (eating !== null) {
+      // The food gives way to the pet eating it, then comes back if any is left.
+      return (
+        <span style={SLOT}>
+          <span
+            key={eating}
+            className="fed"
+            aria-hidden="true"
+            onAnimationEnd={() => setEating(null)}
+          />
+        </span>
+      );
+    }
     if (item !== undefined) {
       return (
         <span
@@ -215,16 +252,7 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
     if (pet !== undefined) {
       const px = PET_PX[pet];
       return (
-        <span
-          style={{
-            width: 64,
-            height: 64,
-            flex: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
+        <span style={SLOT}>
           <img
             src={`/art/${pet}.png`}
             alt=""
