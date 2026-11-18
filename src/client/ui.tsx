@@ -39,7 +39,7 @@ export function Stage(props: {
         className="stage"
         style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
       >
-        <img className="sky" src="/art/sky.png" alt="" />
+        <img className="sky drift" src="/art/sky.png" alt="" />
         <img
           className={props.horizon === 'high' ? 'grass high' : 'grass'}
           src="/art/grass.png"
@@ -210,12 +210,69 @@ export function Fullness(props: { full: number; name: string; size: number }) {
   );
 }
 
-/** Native sizes of the pet sprites, in art pixels. */
+/** Sizes of one pet frame, in art pixels. */
 export const PET_PX = {
   star: { w: 9, h: 9 },
   slime: { w: 11, h: 7 },
-  angel: { w: 10, h: 11 },
+  angel: { w: 10, h: 9 },
 } as const satisfies Record<PetId, { w: number; h: number }>;
+
+/**
+ * Each pet is one strip, `/art/<pet>-fed.png`: STRIP_FRAMES frames side by
+ * side, drawn at STRIP_SUB strip pixels per art pixel (the blink's eyes are
+ * half an art pixel tall). The frames are the eating timeline. Frame 12 is the
+ * blink and frame 13 is the pet at rest (see .sprite in index.css).
+ */
+export const STRIP_FRAMES = 14;
+export const STRIP_SUB = 2;
+
+export type PetMood = 'idle' | 'asleep' | 'eating' | 'still';
+
+/**
+ * A pet at `scale` screen pixels per art pixel. idle blinks, asleep keeps its
+ * eyes shut, eating plays the eating timeline once, still does nothing.
+ * Without a label it is decoration.
+ */
+export function Pet(props: {
+  pet: PetId;
+  scale: number;
+  mood?: PetMood;
+  /** Rises and settles, like breathing. */
+  bob?: boolean;
+  label?: string;
+  style?: CSSProperties;
+  onAnimationEnd?: () => void;
+}) {
+  const px = PET_PX[props.pet];
+  const mood = props.mood ?? 'idle';
+  const bob =
+    props.bob === true ? (mood === 'asleep' ? ' bob slow' : ' bob') : '';
+  return (
+    <span
+      className={`sprite ${props.pet} ${mood}${bob}`}
+      style={vars({
+        '--fw': `${px.w * props.scale}px`,
+        height: px.h * props.scale,
+        ...props.style,
+      })}
+      {...(props.label === undefined
+        ? { 'aria-hidden': true }
+        : { role: 'img', 'aria-label': props.label })}
+      {...(props.onAnimationEnd === undefined
+        ? {}
+        : { onAnimationEnd: props.onAnimationEnd })}
+    />
+  );
+}
+
+/** The owner's ladybug, walking along the grass at height `top`. Decoration. */
+export function Ladybug(props: { top: number | string }) {
+  return (
+    <span className="bugpath" style={{ top: props.top }} aria-hidden="true">
+      <img src="/art/ladybug.png" alt="" />
+    </span>
+  );
+}
 
 const SCENE_X = 187;
 const SCENE_FEET = 146;
@@ -227,7 +284,7 @@ const SCENE_SCALE = 12;
 const ON_HEAD = {
   star: { y: 62, size: 56, z: { x: 219, y: 46 } },
   slime: { y: 74, size: 56, z: { x: 219, y: 44 } },
-  angel: { y: 52, size: 48, z: { x: 75, y: 18 } },
+  angel: { y: 66, size: 48, z: { x: 79, y: 44 } },
 } as const satisfies Record<
   PetId,
   { y: number; size: number; z: { x: number; y: number } }
@@ -274,16 +331,18 @@ export function PetScene(props: {
   const hungry = props.fullness <= 0;
   const alt = `Your pet, ${name}${hungry ? ', is hungry and sleepy' : ''}`;
   const sprite = {
+    position: 'absolute',
     left: SCENE_X - w / 2,
     top: SCENE_FEET - h,
-    width: w,
-    height: h,
-  };
+  } as const;
+  const mood = hungry ? 'asleep' : 'idle';
+  const breath = hungry ? 'bob slow' : 'bob';
   const shadowScale = pet === 'star' ? 9 : 11;
   const shadowW = 10 * shadowScale;
   return (
     <>
       <img
+        className="rustle"
         src="/art/bush.png"
         alt=""
         style={{ left: 75, top: 62, width: 224, height: 80 }}
@@ -292,6 +351,7 @@ export function PetScene(props: {
         <Card item={placed.sceneryBack} x={24} y={64} size={64} />
       )}
       <img
+        className={`shade ${breath}`}
         src="/art/shadow.png"
         alt=""
         style={{
@@ -302,16 +362,23 @@ export function PetScene(props: {
         }}
       />
       {props.onPet === undefined ? (
-        <img src={`/art/${pet}.png`} alt={alt} style={sprite} />
+        <Pet
+          pet={pet}
+          scale={SCENE_SCALE}
+          mood={mood}
+          bob
+          label={alt}
+          style={sprite}
+        />
       ) : (
         <button
           className="artbtn"
-          style={sprite}
+          style={{ ...sprite, width: w, height: h }}
           aria-label="Open your pet's things"
           aria-describedby="pet-state"
           onClick={props.onPet}
         >
-          <img src={`/art/${pet}.png`} alt="" />
+          <Pet pet={pet} scale={SCENE_SCALE} mood={mood} bob />
           <span id="pet-state" hidden>
             {alt}
           </span>
@@ -319,7 +386,7 @@ export function PetScene(props: {
       )}
       {placed.clothes !== null && (
         <span
-          className="art card"
+          className={`art card ${breath}`}
           style={{
             left: SCENE_X - head.size / 2,
             top: head.y - head.size,
@@ -336,6 +403,7 @@ export function PetScene(props: {
       )}
       {hungry && (
         <span
+          className="bob slow"
           style={{
             position: 'absolute',
             left: head.z.x,
@@ -350,6 +418,7 @@ export function PetScene(props: {
       {placed.sceneryFront !== null && (
         <Card item={placed.sceneryFront} x={296} y={72} size={64} />
       )}
+      <Ladybug top={144} />
     </>
   );
 }

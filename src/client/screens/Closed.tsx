@@ -6,7 +6,7 @@ import type { DayView, Results } from '../../shared/types';
 import { api, ApiFailure } from '../api';
 import { ordinal } from '../ordinal';
 import { drawingsText, postUrl } from '../text';
-import { Icon, PET_PX, vars } from '../ui';
+import { Icon, PET_PX, Pet, vars } from '../ui';
 
 type Place = Results['top'][number];
 
@@ -63,7 +63,7 @@ function Podium(props: { top: Place[] }) {
 }
 
 // Whole-number scales that keep every pet at most 81 pixels tall (Star is 9).
-const CLOSED_SCALE = { star: 9, slime: 8, angel: 7 } as const;
+const CLOSED_SCALE = { star: 9, slime: 8, angel: 9 } as const;
 
 export function Closed(props: { view: DayView; pet: PetId }) {
   const { view } = props;
@@ -145,18 +145,20 @@ export function Closed(props: { view: DayView; pet: PetId }) {
         </div>
       </div>
       <img
+        className="shade bob"
         src="/art/shadow.png"
         alt=""
         style={{ left: 148, top: 566, width: 80, height: 24 }}
       />
-      <img
-        src={`/art/${props.pet}.png`}
-        alt={`Your pet, ${view.petName}`}
+      <Pet
+        pet={props.pet}
+        scale={scale}
+        bob
+        label={`Your pet, ${view.petName}`}
         style={{
+          position: 'absolute',
           left: Math.round(187.5 - (px.w * scale) / 2),
           top: 579 - px.h * scale,
-          width: px.w * scale,
-          height: px.h * scale,
         }}
       />
     </>

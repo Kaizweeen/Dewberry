@@ -2,84 +2,84 @@
 name: Dewberry
 description: A daily drawing game inside a Reddit post, set in a pixel meadow.
 colors:
-  sky: "#53daff"
-  plate: "#f1f1f1"
-  line: "#838383"
-  line-hi: "#c3c3c3"
-  ink: "#565656"
-  cream: "#ffe59a"
-  caramel: "#e3a75c"
-  caramel-hi: "#f1c67b"
-  caramel-lo: "#c8873d"
-  toast: "#6b4420"
-  heart: "#ff5e55"
-  berry: "#6b53b8"
-  paper: "#fbf7ec"
-  disabled-fill: "#e4e4e4"
-  disabled-text: "#8d8d8d"
-  meter-track: "#cfcfcf"
+  sky: '#53daff'
+  plate: '#f1f1f1'
+  line: '#838383'
+  line-hi: '#c3c3c3'
+  ink: '#565656'
+  cream: '#ffe59a'
+  caramel: '#e3a75c'
+  caramel-hi: '#f1c67b'
+  caramel-lo: '#c8873d'
+  toast: '#6b4420'
+  heart: '#ff5e55'
+  berry: '#6b53b8'
+  paper: '#fbf7ec'
+  disabled-fill: '#e4e4e4'
+  disabled-text: '#8d8d8d'
+  meter-track: '#cfcfcf'
 typography:
   display:
-    fontFamily: "Silkscreen, monospace"
-    fontSize: "40px"
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '40px'
     fontWeight: 400
-    lineHeight: "44px"
+    lineHeight: '44px'
   headline:
-    fontFamily: "Silkscreen, monospace"
-    fontSize: "32px"
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '32px'
     fontWeight: 400
-    lineHeight: "36px"
+    lineHeight: '36px'
   title:
-    fontFamily: "Silkscreen, monospace"
-    fontSize: "24px"
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '24px'
     fontWeight: 400
-    lineHeight: "30px"
+    lineHeight: '30px'
   body:
-    fontFamily: "Silkscreen, monospace"
-    fontSize: "16px"
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '16px'
     fontWeight: 400
-    lineHeight: "22px"
+    lineHeight: '22px'
   label:
-    fontFamily: "Silkscreen, monospace"
-    fontSize: "12px"
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '12px'
     fontWeight: 400
-    lineHeight: "14px"
+    lineHeight: '14px'
 rounded:
-  none: "0px"
+  none: '0px'
 spacing:
-  unit: "4px"
-  gutter: "12px"
+  unit: '4px'
+  gutter: '12px'
 components:
   plate:
-    backgroundColor: "{colors.plate}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.none}"
-    padding: "4px"
+    backgroundColor: '{colors.plate}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.none}'
+    padding: '4px'
   button:
-    backgroundColor: "{colors.plate}"
-    textColor: "{colors.ink}"
-    typography: "{typography.title}"
-    rounded: "{rounded.none}"
+    backgroundColor: '{colors.plate}'
+    textColor: '{colors.ink}'
+    typography: '{typography.title}'
+    rounded: '{rounded.none}'
   button-hover:
-    backgroundColor: "#ffffff"
+    backgroundColor: '#ffffff'
   button-primary:
-    backgroundColor: "{colors.cream}"
-    textColor: "{colors.toast}"
-    typography: "{typography.title}"
-    rounded: "{rounded.none}"
+    backgroundColor: '{colors.cream}'
+    textColor: '{colors.toast}'
+    typography: '{typography.title}'
+    rounded: '{rounded.none}'
   button-primary-hover:
-    backgroundColor: "#fff0bd"
+    backgroundColor: '#fff0bd'
   button-disabled:
-    backgroundColor: "{colors.disabled-fill}"
-    textColor: "{colors.disabled-text}"
+    backgroundColor: '{colors.disabled-fill}'
+    textColor: '{colors.disabled-text}'
   tab:
-    backgroundColor: "{colors.cream}"
-    textColor: "{colors.toast}"
-    typography: "{typography.body}"
-    padding: "4px 16px"
+    backgroundColor: '{colors.cream}'
+    textColor: '{colors.toast}'
+    typography: '{typography.body}'
+    padding: '4px 16px'
   sheet:
-    backgroundColor: "{colors.paper}"
-    size: "256px"
+    backgroundColor: '{colors.paper}'
+    size: '256px'
 ---
 
 # Design System: Dewberry
@@ -160,7 +160,8 @@ The game is designed once, on a stage of 375 x 596. That is the measured size of
 - The side gutter is 12px. Full width plates are 351px wide.
 - The day tab sits at the top right, 12px from both edges.
 - The grass horizon is high on the Home and Result screens, where the pet stands, and low on the others.
-- Home is the landing page of every open day. The pet's scene fills the top 216px, and one plate below it holds the prompt, one line about the day, the cream button, the two grey buttons (Feed and Inventory), and the streak.
+- The main menu is the landing page of every open day (owner's art and request, 2026-11-18). It is the only screen that fills the viewport instead of the stage, so it is the only screen laid out for a wide desktop window. Every other screen still sits in the 375 x 596 stage, centered.
+- Home is the pet's page, one tap from the menu. The pet's scene fills the top 216px, and one plate below it holds the prompt, one line about the day, the cream button, the two grey buttons (Feed and Inventory), and the streak.
 - The drawing sheet is 256 x 256 and is never scaled by a fraction on the Draw screen.
 - The inline view in the feed is fluid, because its size is not known. It shows the pet, the name, and one Play button.
 
@@ -174,6 +175,21 @@ The system is flat. Depth comes from two toned edges on each plate (a light edge
 ### Named Rules
 
 **The No Blur Rule.** No blurred shadows and no glows. Every edge is a hard step.
+
+## Motion
+
+The pixel world moves in hard steps, never in smooth glides. Movement is one unit (4px) at a time, and everything ambient is slow enough to ignore.
+
+- **The pet:** it blinks (one blink, then a double blink, on a loop of about five seconds) and breathes by rising one unit and settling, with its shadow narrowing in step. Clothes ride along. A hungry pet keeps its eyes shut, breathes slower, and its "z z" drifts with it.
+- **The meadow:** the sky drifts side to side over two minutes. The bush rustles every nine seconds. The owner's ladybug walks along the grass, pauses, walks off, and comes back.
+- **Feedback:** a plate steps up into place when its screen opens (180ms). A heart pops when it lands on a drawing. What the pet earned drops onto the claim card one piece at a time.
+- **The one smooth thing:** on the result page the player's drawing redraws itself line by line, in the order it was drawn, in about 2.4 seconds. Drawings are the only smooth marks in the game, so they are the only smooth motion.
+
+### Named Rules
+
+**The Hard Step Rule.** Pixel art moves with stepped timing. Only a player's drawing may ease or trace.
+
+**The Still Rule.** With reduced motion on, nothing animates. Every state that motion shows is also said in words or shown at rest (the hungry pet's eyes stay shut, the ladybug rests on the grass).
 
 ## Shapes
 
@@ -221,6 +237,22 @@ Each drawing sits on paper in a pocket of the waffle panel. Hover lifts it 4px. 
 ### The pet and its things
 
 The pet stands on the grass at 12 times its drawn size, with the owner's nameplate under it and the owner's edit button beside the nameplate. A pet with no fullness left shows a small pixel "z z". Scenery items sit beside the pet as drawings on small paper cards with a hard grey outline. Clothes are the one place a drawing is shown without paper: lines only, on the pet's head. Food is eaten, so it is never shown in the scene.
+
+Each pet is drawn from one strip of 14 frames (`public/art/<pet>-fed.png`), which holds its resting, blinking, and eating poses. The old single sprites are gone.
+
+### Main menu
+
+The first screen of an open day, and the one screen that is not on the stage. It fills the viewport with the owner's menu art: the sky, the land with its river, the hand-drawn Dewberry logo, and two drawn buttons, DRAW and UR PET. It has no type of its own. The logo and the buttons carry their names for screen readers.
+
+- **Scale:** the art was drawn on a canvas of 148 x 98. Whole-number scales are picked from the viewport (`menuUnits`): the backdrop covers the window, and the logo and buttons take the largest scale that fits, never larger than the backdrop's. On a desktop window that is the owner's composition as drawn. On a phone the logo shrinks to fit the width and the buttons stay at least 44 pixels tall.
+- **Buttons:** DRAW leads to the day's step (the drawing, then hearts, then the result). UR PET leads to the pet's home.
+- **Life:** the sky drifts, the logo floats one unit up and down, the buttons step in, and the player's own pet stands on the grass beside UR PET.
+
+The menu art in `public/art/menu-*.png` is the owner's pixel art recovered pixel for pixel from larger exports, not redrawn.
+
+### The easel
+
+On the result page the player's drawing sits on the owner's easel, at 5 times its drawn size. The drawing is shown as lines only, on the easel's own canvas, and it redraws once when the page opens.
 
 ### Fullness
 

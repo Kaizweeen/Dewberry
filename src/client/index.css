@@ -467,10 +467,7 @@ body {
   align-items: center;
   justify-content: center;
 }
-.entry.pet img {
-  position: static;
-}
-.entry.locked img {
+.entry.locked .sprite {
   opacity: 0.35;
 }
 .entry .badge {
@@ -549,23 +546,205 @@ body {
   gap: var(--u);
 }
 
-/* The slime eating, played once after a feed. slime-fed.png is one strip of
-   14 frames, 22 x 14 each, drawn here at 3 times and stepped at 130ms a frame.
-   At rest it shows the last frame, so nothing flashes when the run ends. */
-.fed {
+/* ---------- Motion ----------
+   The pixel world moves in hard steps on the 4px unit. Players' drawings are
+   the one smooth thing. With reduced motion (end of file) nothing animates. */
+
+/* A pet, drawn from its strip of 14 frames (see Pet in ui.tsx). --fw is one
+   frame's width on screen. At rest it shows frame 13, so nothing flashes when
+   a run ends. */
+.sprite {
+  display: block;
   flex: none;
-  width: 66px;
-  height: 42px;
-  background: url('/art/slime-fed.png') -858px 0 / 924px 42px no-repeat;
+  width: var(--fw);
+  background: calc(-13 * var(--fw)) 0 / calc(14 * var(--fw)) 100% no-repeat;
   image-rendering: pixelated;
+}
+.sprite.slime {
+  background-image: url('/art/slime-fed.png');
+}
+.sprite.angel {
+  background-image: url('/art/angel-fed.png');
+}
+.sprite.star {
+  background-image: url('/art/star-fed.png');
+}
+/* One blink, a long look, then a double blink. Frame 12 is the blink. */
+.sprite.idle {
+  animation: blink 5200ms step-end infinite;
+}
+.sprite.idle.bob {
+  animation:
+    blink 5200ms step-end infinite,
+    bob 2600ms step-end infinite;
+}
+.sprite.asleep {
+  background-position-x: calc(-12 * var(--fw));
+}
+/* Eating, played once after a feed: 130ms a frame. */
+.sprite.eating {
   animation: fed 1820ms steps(14) 1;
+}
+@keyframes blink {
+  0%,
+  49%,
+  91%,
+  97% {
+    background-position-x: calc(-13 * var(--fw));
+  }
+  46%,
+  88%,
+  94% {
+    background-position-x: calc(-12 * var(--fw));
+  }
 }
 @keyframes fed {
   from {
     background-position-x: 0;
   }
   to {
-    background-position-x: -924px;
+    background-position-x: calc(-14 * var(--fw));
+  }
+}
+
+/* Breathing: up one unit and back. The shadow narrows while the pet is up. */
+.bob {
+  animation: bob 2600ms step-end infinite;
+}
+.bob.slow {
+  animation-duration: 4400ms;
+}
+.shade.bob {
+  animation-name: shade;
+}
+@keyframes bob {
+  50% {
+    translate: 0 -4px;
+  }
+}
+@keyframes shade {
+  50% {
+    scale: 0.9 1;
+  }
+}
+
+/* The meadow: the sky drifts, the bush rustles, the ladybug walks. */
+.stage .sky.drift {
+  animation: drift 120s steps(48) infinite alternate;
+}
+@keyframes drift {
+  to {
+    translate: -192px 0;
+  }
+}
+.rustle {
+  animation: rustle 9s step-end infinite;
+}
+@keyframes rustle {
+  90%,
+  95% {
+    translate: -4px 0;
+  }
+  92.5% {
+    translate: 4px 0;
+  }
+  97.5% {
+    translate: 0 0;
+  }
+}
+/* The path is as wide as the stage, so its own width is the distance walked.
+   Without motion the ladybug rests where it would have paused. */
+.bugpath {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 0;
+  pointer-events: none;
+  translate: 34% 0;
+  animation: wander 40s infinite alternate;
+}
+.stage .bugpath img {
+  left: 0;
+  top: 0;
+  width: 27px;
+  height: 27px;
+}
+@keyframes wander {
+  0% {
+    translate: -12% 0;
+    animation-timing-function: steps(30);
+  }
+  30% {
+    translate: 34% 0;
+    animation-timing-function: step-end;
+  }
+  42% {
+    translate: 34% 0;
+    animation-timing-function: steps(44);
+  }
+  86%,
+  100% {
+    translate: 104% 0;
+  }
+}
+
+/* A plate steps up into place when its screen opens. It is never hidden, so a
+   page that is not painting yet still shows every control. */
+.stage > .px {
+  animation: plate-in 180ms steps(3, jump-none) both;
+}
+@keyframes plate-in {
+  from {
+    translate: 0 8px;
+  }
+}
+/* A heart lands on a drawing. */
+.pop {
+  animation: pop 320ms steps(3, jump-none) both;
+}
+@keyframes pop {
+  from {
+    scale: 0.4;
+  }
+  50% {
+    scale: 1.4;
+  }
+}
+/* What the pet earned arrives one piece at a time (the delay is set inline). */
+.drop {
+  animation: drop 240ms steps(3, jump-none) both;
+}
+@keyframes drop {
+  from {
+    translate: 0 -12px;
+    opacity: 0;
+  }
+}
+/* A drawing redraws itself: each line traces its own length (pathLength 1),
+   one after another. Duration and delay are set inline per line. */
+.ink {
+  stroke-dasharray: 1 2;
+  animation: ink linear both;
+}
+.ink.dot {
+  stroke-dasharray: none;
+  animation-name: ink-dot;
+}
+@keyframes ink {
+  0% {
+    stroke-dashoffset: 1.1;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ink-dot {
+  from {
+    opacity: 0;
   }
 }
 
@@ -596,9 +775,6 @@ body {
   text-transform: inherit;
   color: inherit;
   cursor: pointer;
-}
-.pick img {
-  position: static;
 }
 .pick:hover {
   filter: brightness(1.06);
@@ -636,7 +812,50 @@ body {
   outline-offset: 0;
 }
 
+/* ---------- Main menu ----------
+   The owner's menu art fills the viewport (see Menu.tsx). It has no text of
+   its own: the logo and the two buttons are drawn, and named for readers. */
+.menu {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #86dfff;
+}
+.menu img {
+  max-width: none;
+  image-rendering: pixelated;
+  user-select: none;
+}
+.menu > img,
+.menu .shade {
+  position: absolute;
+}
+.menu h1 {
+  position: absolute;
+  margin: 0;
+}
+.menu h1 img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.menu-sky {
+  animation: menu-drift 90s steps(30) infinite alternate;
+}
+@keyframes menu-drift {
+  from {
+    translate: -60px 0;
+  }
+  to {
+    translate: 60px 0;
+  }
+}
+.menu .artbtn {
+  animation: plate-in 180ms steps(3, jump-none) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .menu *,
   .stage *,
   .stage *::before,
   .stage *::after {

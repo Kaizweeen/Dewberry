@@ -3,7 +3,7 @@ import { DrawingArt } from '../draw/DrawingArt';
 import type { PetId } from '../../shared/pets';
 import type { DayView } from '../../shared/types';
 import { postUrl, streakText } from '../text';
-import { Icon, PetScene, vars } from '../ui';
+import { Icon, PetScene } from '../ui';
 
 export function Result(props: {
   view: DayView;
@@ -41,25 +41,51 @@ export function Result(props: {
           <div
             style={{
               display: 'flex',
-              gap: 18,
+              gap: 12,
               marginTop: 12,
               alignItems: 'flex-start',
             }}
           >
+            {/* The owner's easel (32 x 32 art pixels) at 5 times. Its canvas is
+                x 15 to 145, y 35 to 130, and the drawing sits inside it. */}
             <div
-              className="pocket"
-              style={vars({ '--pu': '6px', margin: '6px 0 0 6px' })}
+              style={{
+                position: 'relative',
+                flex: 'none',
+                width: 160,
+                height: 160,
+              }}
             >
-              <span className="art paper" style={{ width: 104, height: 104 }}>
+              <img
+                src="/art/easel.png"
+                alt=""
+                style={{ left: 0, top: 0, width: 160, height: 160 }}
+              />
+              <span
+                className="art"
+                style={{
+                  position: 'absolute',
+                  left: 34,
+                  top: 36,
+                  width: 92,
+                  height: 92,
+                }}
+              >
                 {view.myEntry !== null && (
-                  <DrawingArt entry={view.myEntry} label="Your drawing" />
+                  <DrawingArt
+                    bare
+                    replay
+                    entry={view.myEntry}
+                    label="Your drawing"
+                  />
                 )}
               </span>
             </div>
             <div className="t16" style={{ display: 'grid', gap: 8 }}>
               <p className="count t24">
                 <Icon name="heart" width={28} height={24} />
-                {view.myHearts} so far
+                {view.myHearts}
+                <span className="t16">so far</span>
               </p>
               <p>{streakText(view.streak)}</p>
               <p>Results at 12:00 UTC.</p>

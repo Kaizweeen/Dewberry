@@ -7,13 +7,16 @@ import { Draw } from './screens/Draw';
 import { Gallery } from './screens/Gallery';
 import { Home } from './screens/Home';
 import { Inventory } from './screens/Inventory';
+import { Menu } from './screens/Menu';
 import type { InventoryTab } from './screens/Inventory';
 import { PetPick } from './screens/PetPick';
 import { Result } from './screens/Result';
+import { homeStep } from './text';
 import type { HomeStep } from './text';
 import { Stage } from './ui';
 
-type Screen = 'home' | 'draw' | 'gallery' | 'result' | 'closed' | 'inventory';
+type Screen =
+  'menu' | 'home' | 'draw' | 'gallery' | 'result' | 'closed' | 'inventory';
 
 // Where the home page's main button leads, for each step of the day.
 const STEP_SCREEN = {
@@ -61,7 +64,7 @@ function Plate(props: {
 export function App() {
   const [view, setView] = useState<DayView | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
-  const [screen, setScreen] = useState<Screen>('home');
+  const [screen, setScreen] = useState<Screen>('menu');
   const [invTab, setInvTab] = useState<InventoryTab>('clothes');
   // The server hands a claim out once. It is kept here until the player dismisses it.
   const [claim, setClaim] = useState<Claim | null>(null);
@@ -83,7 +86,9 @@ export function App() {
     );
   };
 
-  const load = () => {
+  // An open day starts at the main menu. Coming back from the inventory
+  // reloads the day and lands on the pet's home instead.
+  const load = (to: 'menu' | 'home' = 'menu') => {
     if (loadingRef.current) return;
     loadingRef.current = true;
     setFailure(null);
@@ -92,8 +97,7 @@ export function App() {
       .then((v) => {
         keepClaim(v);
         setView(v);
-        // An open day always starts at the pet's home.
-        setScreen(v.open ? 'home' : 'closed');
+        setScreen(v.open ? to : 'closed');
       })
       .catch((err: unknown) => setFailure(toFailure(err)))
       .finally(() => {
@@ -135,7 +139,11 @@ export function App() {
 
   if (failure !== null) {
     const final = failure.status === 401 || failure.status === 404;
-    return <Plate {...(final ? {} : { retry: load })}>{failure.message}</Plate>;
+    return (
+      <Plate {...(final ? {} : { retry: () => load() })}>
+        {failure.message}
+      </Plate>
+    );
   }
   if (view === null) return <Plate status>Loading</Plate>;
 
@@ -145,13 +153,27 @@ export function App() {
   // The pick and the claim card come before a screen. The pick is on the grass.
   // A claim that arrives mid-play waits: it never interrupts drawing or the gallery.
   const calm =
-    current === 'home' || current === 'result' || current === 'closed';
+    current === 'menu' ||
+    current === 'home' ||
+    current === 'result' ||
+    current === 'closed';
   const openInventory = (tab: InventoryTab) => {
     setInvTab(tab);
     setScreen('inventory');
   };
   const before =
     view.pet === null ? 'pick' : claim !== null && calm ? 'claim' : null;
+  // The main menu fills the viewport, so it is drawn outside the stage.
+  if (before === null && current === 'menu' && view.pet !== null) {
+    return (
+      <Menu
+        pet={view.pet}
+        hungry={view.fullness <= 0}
+        onDraw={() => setScreen(STEP_SCREEN[homeStep(view)])}
+        onPet={() => setScreen('home')}
+      />
+    );
+  }
   return (
     <Stage
       horizon={
@@ -161,7 +183,7 @@ export function App() {
           : 'low'
       }
     >
-      {before === 'pick' && <PetPick onPicked={load} />}
+      {before === 'pick' && <PetPick onPicked={() => load()} />}
       {before === 'claim' && claim !== null && (
         <ClaimCard claim={claim} onDone={() => setClaim(null)} />
       )}
@@ -234,9 +256,12 @@ export function App() {
       case 'inventory':
         // Back reloads the day, so the scene shows what changed. A claim card
         // kept in state survives the reload (keepClaim never erases it).
-        return <Inventory start={invTab} onBack={load} />;
+        return <Inventory start={invTab} onBack={() => load('home')} />;
       case 'closed':
         return <Closed view={view} pet={pet} />;
+      case 'menu':
+        // Drawn outside the stage, above.
+        return null;
     }
   }
 }

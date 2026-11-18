@@ -3,6 +3,7 @@ import './index.css';
 import { requestExpandedMode } from '@devvit/web/client';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Ladybug, Pet } from './ui';
 
 // The inline view in the feed. Its size is not known, so it is fluid.
 export function Splash() {
@@ -34,11 +35,8 @@ export function Splash() {
           objectPosition: 'top',
         }}
       />
-      <img
-        src="/art/star.png"
-        alt=""
-        style={{ position: 'relative', width: 96, height: 96 }}
-      />
+      <Ladybug top="calc(55% + 24px)" />
+      <Pet pet="star" scale={10} bob style={{ position: 'relative' }} />
       <h1 className="px in t40 display" style={{ padding: '6px 20px 10px' }}>
         <span style={{ position: 'relative' }}>Dewberry</span>
       </h1>

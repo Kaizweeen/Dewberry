@@ -3,8 +3,23 @@ import type { Drawing } from '../../shared/entry';
 
 export const PAPER = '#fbf7ec';
 
-/** The paper and its lines, as the children of an svg with viewBox 0 0 SIZE SIZE. */
-export function Lines(props: { drawing: Drawing; bare?: boolean }) {
+// A replay takes this long in all, and no single line takes longer than REPLAY_LINE_MS.
+const REPLAY_MS = 2400;
+const REPLAY_LINE_MS = 400;
+
+/**
+ * The paper and its lines, as the children of an svg with viewBox 0 0 SIZE SIZE.
+ * With `replay` the lines draw themselves once, in the order they were drawn.
+ */
+export function Lines(props: {
+  drawing: Drawing;
+  bare?: boolean;
+  replay?: boolean;
+}) {
+  const each = Math.min(
+    REPLAY_LINE_MS,
+    REPLAY_MS / Math.max(1, props.drawing.length)
+  );
   return (
     <>
       {props.bare !== true && <rect width={SIZE} height={SIZE} fill={PAPER} />}
@@ -13,6 +28,8 @@ export function Lines(props: { drawing: Drawing; bare?: boolean }) {
         for (let j = 0; j + 1 < s.p.length; j += 2) {
           pts.push(`${s.p[j]},${s.p[j + 1]}`);
         }
+        // A tap is a line with no length: it has nothing to trace, so it only appears.
+        const dot = pts.every((p) => p === pts[0]);
         return (
           <polyline
             key={i}
@@ -22,6 +39,16 @@ export function Lines(props: { drawing: Drawing; bare?: boolean }) {
             strokeWidth={STROKE_WIDTH}
             strokeLinecap="round"
             strokeLinejoin="round"
+            {...(props.replay === true
+              ? {
+                  className: dot ? 'ink dot' : 'ink',
+                  ...(dot ? {} : { pathLength: 1 }),
+                  style: {
+                    animationDuration: `${each}ms`,
+                    animationDelay: `${Math.round(i * each)}ms`,
+                  },
+                }
+              : {})}
           />
         );
       })}
@@ -34,8 +61,10 @@ export function DrawingArt(props: {
   entry: string;
   label?: string;
   className?: string;
-  /** Lines only, with no paper behind them (clothes on a pet). */
+  /** Lines only, with no paper behind them (clothes on a pet, the easel). */
   bare?: boolean;
+  /** The lines draw themselves once when the drawing appears. */
+  replay?: boolean;
 }) {
   return (
     <svg
@@ -48,6 +77,7 @@ export function DrawingArt(props: {
       <Lines
         drawing={parseEntry(props.entry) ?? []}
         {...(props.bare === true ? { bare: true } : {})}
+        {...(props.replay === true ? { replay: true } : {})}
       />
     </svg>
   );

@@ -3,7 +3,7 @@ import { PETS } from '../../shared/pets';
 import type { PetId } from '../../shared/pets';
 import { ApiFailure, api } from '../api';
 import { petLabel } from '../text';
-import { PET_PX } from '../ui';
+import { Pet } from '../ui';
 
 const SCALE = 8;
 const COLUMN = 117;
@@ -41,7 +41,6 @@ export function PetPick(props: { onPicked: () => void }) {
         </h1>
       </div>
       {PETS.map((pet, i) => {
-        const px = PET_PX[pet];
         return (
           <button
             key={pet}
@@ -56,10 +55,12 @@ export function PetPick(props: { onPicked: () => void }) {
                 height: SPRITE_ROW,
               }}
             >
-              <img
-                src={`/art/${pet}.png`}
-                alt=""
-                style={{ width: px.w * SCALE, height: px.h * SCALE }}
+              {/* Each pet starts its loop at a different point, so they do not move as one. */}
+              <Pet
+                pet={pet}
+                scale={SCALE}
+                bob
+                style={{ animationDelay: `${-900 * i}ms` }}
               />
             </span>
             <span className="px in t16">

@@ -5,7 +5,7 @@ import type { Item, PetAction, PetView } from '../../shared/types';
 import { ApiFailure, api } from '../api';
 import { DrawingArt } from '../draw/DrawingArt';
 import { foodLine, pageCount, pageSlice, petLabel, unlockLine } from '../text';
-import { Fullness, Icon, PET_PX } from '../ui';
+import { Fullness, Icon, Pet } from '../ui';
 
 const GENERIC = 'Something went wrong. Try again.';
 const messageOf = (err: unknown): string =>
@@ -84,11 +84,10 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
       const result = await api.updatePet(action);
       if (result.ok) {
         setPv(result.pet);
-        // Only the slime has eating frames so far. With reduced motion nothing
-        // animates: the line of text and the berries already say it was fed.
+        // With reduced motion nothing animates: the line of text and the
+        // berries already say it was fed.
         if (
           action.type === 'feed' &&
-          result.pet.pet === 'slime' &&
           !window.matchMedia('(prefers-reduced-motion: reduce)').matches
         )
           setEating((n) => (n ?? 0) + 1);
@@ -223,14 +222,15 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
   if (note !== null) text = note;
 
   const preview = (() => {
-    if (eating !== null) {
+    if (eating !== null && pv.pet !== null) {
       // The food gives way to the pet eating it, then comes back if any is left.
       return (
         <span style={SLOT}>
-          <span
+          <Pet
             key={eating}
-            className="fed"
-            aria-hidden="true"
+            pet={pv.pet}
+            scale={6}
+            mood="eating"
             onAnimationEnd={() => setEating(null)}
           />
         </span>
@@ -250,14 +250,9 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
       );
     }
     if (pet !== undefined) {
-      const px = PET_PX[pet];
       return (
         <span style={SLOT}>
-          <img
-            src={`/art/${pet}.png`}
-            alt=""
-            style={{ position: 'static', width: px.w * 4, height: px.h * 4 }}
-          />
+          <Pet pet={pet} scale={4} />
         </span>
       );
     }
@@ -297,7 +292,6 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
       />
       {onPets
         ? PETS.map((p: PetId, i) => {
-            const px = PET_PX[p];
             const owned = pv.unlocked.includes(p);
             return (
               <button
@@ -310,11 +304,7 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
                 aria-pressed={sel === p}
                 onClick={() => select(p)}
               >
-                <img
-                  src={`/art/${p}.png`}
-                  alt=""
-                  style={{ width: px.w * 4, height: px.h * 4 }}
-                />
+                <Pet pet={p} scale={4} mood="still" />
                 {p === pv.pet && (
                   <span className="badge">
                     <Icon name="check" />

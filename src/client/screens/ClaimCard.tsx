@@ -24,14 +24,16 @@ export function ClaimCard(props: { claim: Claim; onDone: () => void }) {
                 gap: 12,
               }}
             >
-              {claim.items.slice(0, shown).map((item) => (
+              {claim.items.slice(0, shown).map((item, i) => (
                 <li
                   key={item.id}
+                  className="drop"
                   style={{
                     display: 'grid',
                     justifyItems: 'center',
                     gap: 8,
                     minWidth: 0,
+                    animationDelay: `${200 + i * 160}ms`,
                   }}
                 >
                   <span

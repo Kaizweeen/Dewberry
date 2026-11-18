@@ -119,7 +119,7 @@ export function Gallery(props: {
           >
             <DrawingArt entry={item.entry} />
             {done && (
-              <span className="badge">
+              <span className="badge pop">
                 <Icon name="heart" />
               </span>
             )}
