@@ -3,9 +3,16 @@ import { FULL_MAX, PETS } from '../../shared/pets';
 import type { PetId } from '../../shared/pets';
 import type { Item, PetAction, PetView } from '../../shared/types';
 import { ApiFailure, api } from '../api';
-import { DrawingArt } from '../draw/DrawingArt';
-import { foodLine, pageCount, pageSlice, petLabel, unlockLine } from '../text';
-import { Fullness, Icon, Pet } from '../ui';
+import {
+  foodLine,
+  itemByLine,
+  itemLabel,
+  pageCount,
+  pageSlice,
+  petLabel,
+  unlockLine,
+} from '../text';
+import { Fullness, Icon, ItemArt, Pet } from '../ui';
 
 const GENERIC = 'Something went wrong. Try again.';
 const messageOf = (err: unknown): string =>
@@ -169,8 +176,8 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
   const pet = onPets ? PETS.find((p) => p === sel) : undefined;
   let text =
     pages > 1
-      ? `Page ${at + 1} of ${pages}. Tap a drawing to see it.`
-      : 'Tap a drawing to see it.';
+      ? `Page ${at + 1} of ${pages}. Tap an item to see it.`
+      : 'Tap an item to see it.';
   // Plain data, so the busy flag is only read when the button is pressed.
   let action: { label: string; act: PetAction } | null = null;
   if (onPets) {
@@ -211,9 +218,7 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
     }
   } else if (item !== undefined) {
     const on = placed.has(item.id);
-    text = `Day ${item.day}, made by u/${item.maker}. ${
-      on ? 'On your pet now.' : 'Not placed.'
-    }`;
+    text = `${itemByLine(item)} ${on ? 'On your pet now.' : 'Not placed.'}`;
     action = {
       label: on ? 'Take away' : 'Place',
       act: { type: 'toggle', itemId: item.id },
@@ -242,10 +247,7 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
           className="art paper"
           style={{ width: 64, height: 64, flex: 'none' }}
         >
-          <DrawingArt
-            entry={item.entry}
-            label={`${item.category} by u/${item.maker}`}
-          />
+          <ItemArt item={item} label={itemLabel(item)} />
         </span>
       );
     }
@@ -318,15 +320,15 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
               key={it.id}
               className="entry paper"
               style={pocket(i)}
-              aria-label={`${petLabel(it.category)} by u/${it.maker}, day ${
-                it.day
+              aria-label={`${itemLabel(it)}${
+                it.name === undefined ? `, day ${it.day}` : ''
               }${placed.has(it.id) ? ', on your pet' : ''}${
                 onFood ? `, servings left: ${pv.servings[it.id] ?? 0}` : ''
               }`}
               aria-pressed={sel === it.id}
               onClick={() => select(it.id)}
             >
-              <DrawingArt entry={it.entry} />
+              <ItemArt item={it} />
               {placed.has(it.id) && (
                 <span className="badge">
                   <Icon name="check" />

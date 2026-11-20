@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { FULL_MAX } from '../shared/pets';
 import type { PetId } from '../shared/pets';
+import { STARTERS } from '../shared/starter';
 import type { Item, Placed } from '../shared/types';
 import { DrawingArt } from './draw/DrawingArt';
+import { itemLabel } from './text';
 
 /** Inline styles that may set custom properties such as --fill. */
 export type CssVars = CSSProperties & Record<`--${string}`, string | number>;
@@ -292,6 +294,52 @@ const ON_HEAD = {
 
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+/** An item's picture: the player's drawing, or the owner's pixel art for a starter item. */
+export function ItemArt(props: { item: Item; bare?: boolean; label?: string }) {
+  const { item } = props;
+  if (item.art !== undefined)
+    return (
+      <img
+        className="starter"
+        src={`/art/items/${item.art}.png`}
+        alt={props.label ?? ''}
+      />
+    );
+  return (
+    <DrawingArt
+      entry={item.entry}
+      {...(props.label === undefined ? {} : { label: props.label })}
+      {...(props.bare === true ? { bare: true } : {})}
+    />
+  );
+}
+
+// The owner's accessories are drawn finer than the pets: one of their art pixels
+// is WEAR_SCALE screen pixels, two thirds of a pet's.
+const WEAR_SCALE = 8;
+
+// Where each sits on each pet, in the pet's art pixels from its top left. `x` is
+// the middle of the accessory and `y` its top edge, so a negative `y` rises above
+// the pet. The sunglasses cover the eyes.
+type Spot = { x: number; y: number };
+const WEAR = {
+  star: {
+    fedora: { x: 4.5, y: -1.5 },
+    band: { x: 4.5, y: 1.5 },
+    sunglasses: { x: 4.5, y: 3.8 },
+  },
+  slime: {
+    fedora: { x: 5.5, y: -1.4 },
+    band: { x: 5.5, y: 1.7 },
+    sunglasses: { x: 5.5, y: 3.8 },
+  },
+  angel: {
+    fedora: { x: 5, y: -1.8 },
+    band: { x: 5, y: 2.5 },
+    sunglasses: { x: 4.5, y: 5.8 },
+  },
+} as const satisfies Record<PetId, Record<string, Spot>>;
+
 /** A placed item's drawing on a paper card. */
 function Card(props: { item: Item; x: number; y: number; size: number }) {
   const { item } = props;
@@ -305,10 +353,7 @@ function Card(props: { item: Item; x: number; y: number; size: number }) {
         height: props.size,
       }}
     >
-      <DrawingArt
-        entry={item.entry}
-        label={`${item.category} by u/${item.maker}`}
-      />
+      <ItemArt item={item} label={itemLabel(item)} />
     </span>
   );
 }
@@ -337,6 +382,14 @@ export function PetScene(props: {
   } as const;
   const mood = hungry ? 'asleep' : 'idle';
   const breath = hungry ? 'bob slow' : 'bob';
+  // The owner's accessories are worn on the pet. A drawing is a card above its head.
+  const art = placed.clothes?.art;
+  const spot: Spot | undefined =
+    art === undefined
+      ? undefined
+      : (WEAR[pet] as Record<string, Spot | undefined>)[art];
+  const size = STARTERS.find((s) => s.art === art);
+  const worn = spot && size ? { ...spot, w: size.w, h: size.h } : null;
   const shadowScale = pet === 'star' ? 9 : 11;
   const shadowW = 10 * shadowScale;
   return (
@@ -384,7 +437,7 @@ export function PetScene(props: {
           </span>
         </button>
       )}
-      {placed.clothes !== null && (
+      {placed.clothes !== null && worn === null && (
         <span
           className={`art card ${breath}`}
           style={{
@@ -394,11 +447,25 @@ export function PetScene(props: {
             height: head.size,
           }}
         >
-          <DrawingArt
+          <ItemArt
             bare
-            entry={placed.clothes.entry}
-            label={`${placed.clothes.category} by u/${placed.clothes.maker}`}
+            item={placed.clothes}
+            label={itemLabel(placed.clothes)}
           />
+        </span>
+      )}
+      {placed.clothes !== null && worn !== null && (
+        <span
+          className={`card ${breath}`}
+          style={{
+            left:
+              sprite.left + worn.x * SCENE_SCALE - (worn.w * WEAR_SCALE) / 2,
+            top: sprite.top + worn.y * SCENE_SCALE,
+            width: worn.w * WEAR_SCALE,
+            height: worn.h * WEAR_SCALE,
+          }}
+        >
+          <ItemArt item={placed.clothes} label={itemLabel(placed.clothes)} />
         </span>
       )}
       {hungry && (

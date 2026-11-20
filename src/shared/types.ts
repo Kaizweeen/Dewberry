@@ -57,6 +57,9 @@ export type Item = {
   category: Category;
   entry: string;
   maker: string;
+  /** Set on the owner's starter items: the picture's name in /art/items. They have no entry. */
+  art?: string;
+  name?: string;
 };
 
 export type Placed = {

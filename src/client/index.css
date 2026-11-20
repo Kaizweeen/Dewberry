@@ -303,6 +303,15 @@ body {
 .art {
   display: block;
 }
+/* The owner's starter items: pixel art, fitted into its box without blurring. */
+img.starter {
+  position: static;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
 
 /* Drawing board: a sheet of paper */
 .board .sheet {
