@@ -8,6 +8,7 @@ import {
   isPetId,
   petSlots,
 } from '../shared/pets';
+import { starterItem, starterItems } from '../shared/starter';
 import type { Claim, Item, Placed, PetResult, PetView } from '../shared/types';
 import { keys, type Store } from './store';
 
@@ -38,6 +39,8 @@ const readItem = async (store: Store, day: number, rank: number) =>
   toItem(day, rank, await store.hGetAll(keys.item(day, rank)));
 
 const itemFromId = (store: Store, id: string) => {
+  const starter = starterItem(id);
+  if (starter) return Promise.resolve(starter);
   const [day, rank] = id.split(':').map(Number);
   return day === undefined || rank === undefined
     ? Promise.resolve(null)
@@ -119,9 +122,12 @@ export async function getPetView(
   const eatenOf = new Map(eaten.map((e) => [e.member, e.score]));
   // A food with no servings left is gone, even if removing it from the hash failed.
   const left = (i: Item) => SERVINGS - (eatenOf.get(i.id) ?? 0);
-  const items = (
-    await Promise.all(Object.keys(owned).map((id) => itemFromId(store, id)))
-  )
+  const items = [
+    ...(await Promise.all(
+      Object.keys(owned).map((id) => itemFromId(store, id))
+    )),
+    ...starterItems,
+  ]
     .flatMap((i) => (i && (i.category !== 'food' || left(i) > 0) ? [i] : []))
     .sort((a, b) => b.day - a.day || a.rank - b.rank);
   const find = (id: string | undefined) =>
@@ -207,9 +213,10 @@ export async function updatePet(
     const itemId: unknown = 'itemId' in act ? act.itemId : undefined;
     if (typeof itemId !== 'string') return fail(BAD_ACTION);
     const item =
-      (await store.hGet(keys.items(a.userId), itemId)) !== undefined
+      starterItem(itemId) ??
+      ((await store.hGet(keys.items(a.userId), itemId)) !== undefined
         ? await itemFromId(store, itemId)
-        : null;
+        : null);
     if (!item) return fail('That item is not yours.');
     if (item.category === 'food') return fail('Food is for eating.');
     const p = await store.hGetAll(player);

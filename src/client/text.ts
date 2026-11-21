@@ -32,14 +32,32 @@ export function homeLine(step: HomeStep, heartsLeft: number): string {
 }
 
 /** What the inventory says about a chosen food. */
+type Made = { day: number; maker: string; name?: string };
+
+/** "Day 3, by u/mia." or, for the owner's starter items, "Cherry, from the Dewberry kit." */
+export function itemByLine(item: Made): string {
+  return item.name === undefined
+    ? `Day ${item.day}, by u/${item.maker}.`
+    : `${item.name}, from the Dewberry kit.`;
+}
+
+/** What a screen reader hears for an item: "Food by u/mia" or "Cherry". */
+export function itemLabel(item: {
+  category: string;
+  maker: string;
+  name?: string;
+}): string {
+  return item.name ?? `${petLabel(item.category)} by u/${item.maker}`;
+}
+
 export function foodLine(
-  food: { day: number; maker: string },
+  food: Made,
   servings: number,
   petName: string,
   full: boolean
 ): string {
   if (full) return `${petName} is full. Come back tomorrow.`;
-  return `Day ${food.day}, by u/${food.maker}. ${servings} ${
+  return `${itemByLine(food)} ${servings} ${
     servings === 1 ? 'serving' : 'servings'
   } left.`;
 }

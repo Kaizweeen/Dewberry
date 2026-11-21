@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getDayView, heartEntry, rollover, submitEntry } from './game';
 import { memoryStore } from './memoryStore';
 import { claimRewards, getPetView, updatePet } from './pets';
+import { starterItems } from '../shared/starter';
 import { keys, type Store } from './store';
 import type { PetAction } from '../shared/types';
 
@@ -37,6 +38,9 @@ async function closedDayOfFour(): Promise<Store> {
 }
 
 const ids = (items: { id: string }[]) => items.map((i) => i.id);
+/** Without the starter kit every player owns: only what was earned. */
+const earned = <T extends { id: string }>(items: T[]) =>
+  items.filter((i) => !i.id.startsWith('starter:'));
 const update = (store: Store, action: PetAction | unknown, userId = 'u1') =>
   updatePet(store, { userId, action });
 
@@ -100,7 +104,7 @@ describe('claimRewards', () => {
     const store = await closedDayOfFour();
     expect(await claimRewards(store, 'u1')).not.toBeNull();
     expect(await claimRewards(store, 'u1')).toBeNull();
-    expect((await getPetView(store, 'u1')).items).toHaveLength(3);
+    expect(earned((await getPetView(store, 'u1')).items)).toHaveLength(3);
   });
 
   it('skips a day that is not finalized and claims it later', async () => {
@@ -207,7 +211,7 @@ describe('feed', () => {
   it('adds one to fullness and uses one serving', async () => {
     const store = memoryStore();
     await seed(store);
-    expect((await getPetView(store, 'u1')).servings).toEqual({
+    expect((await getPetView(store, 'u1')).servings).toMatchObject({
       '1:1': 3,
       '1:2': 3,
     });
@@ -228,7 +232,8 @@ describe('feed', () => {
     expect(last).toMatchObject({ ok: true, pet: { fullness: 3 } });
     const view = await getPetView(store, 'u1');
     expect(ids(view.items)).not.toContain('1:1');
-    expect(view.servings).toEqual({ '1:2': 3 });
+    expect(view.servings['1:1']).toBeUndefined();
+    expect(view.servings['1:2']).toBe(3);
     await hungry(store);
     expect(await feed(store, '1:1')).toEqual({
       ok: false,
@@ -307,8 +312,10 @@ describe('getPetView', () => {
         sceneryBack: null,
         sceneryFront: null,
       },
-      items: [],
-      servings: {},
+      items: starterItems,
+      servings: Object.fromEntries(
+        starterItems.filter((i) => i.category === 'food').map((i) => [i.id, 3])
+      ),
     });
   });
 
@@ -320,13 +327,81 @@ describe('getPetView', () => {
     await update(store, { type: 'pick', pet: 'slime' });
     const view = await getPetView(store, 'u1');
     expect(view.name).toBe('Slime');
-    expect(ids(view.items)).toEqual(['2:1', '1:1', '1:2', '1:3']);
+    expect(ids(earned(view.items))).toEqual(['2:1', '1:1', '1:2', '1:3']);
+    // The starter kit comes after everything earned.
+    expect(ids(view.items).slice(4)).toEqual(ids(starterItems));
   });
 
   it('leaves out an owned item with no entry', async () => {
     const store = memoryStore();
     await store.hSet(keys.items('u1'), { '9:1': '1' });
-    expect((await getPetView(store, 'u1')).items).toEqual([]);
+    expect(earned((await getPetView(store, 'u1')).items)).toEqual([]);
+  });
+});
+
+describe('the starter kit', () => {
+  const hungry = (store: Store) =>
+    store.hSet(keys.player('u1'), { full: '0', fullDay: '0' });
+  const withPet = async () => {
+    const store = memoryStore();
+    await update(store, { type: 'pick', pet: 'star' });
+    return store;
+  };
+
+  it('is owned by every player from the first day', async () => {
+    const view = await getPetView(memoryStore(), 'u9');
+    expect(ids(view.items)).toEqual(ids(starterItems));
+    expect(view.items.every((i) => i.art !== undefined)).toBe(true);
+  });
+
+  it('feeds a food three times, then it is gone', async () => {
+    const store = await withPet();
+    await hungry(store);
+    const feed = () =>
+      update(store, { type: 'feed', itemId: 'starter:cherry' });
+    expect(await feed()).toMatchObject({
+      ok: true,
+      pet: { fullness: 1, servings: { 'starter:cherry': 2 } },
+    });
+    await feed();
+    await feed();
+    const view = await getPetView(store, 'u1');
+    expect(ids(view.items)).not.toContain('starter:cherry');
+    await hungry(store);
+    expect(await feed()).toEqual({
+      ok: false,
+      reason: 'That item is not yours.',
+    });
+    // Another player still has theirs.
+    expect(ids((await getPetView(store, 'u2')).items)).toContain(
+      'starter:cherry'
+    );
+  });
+
+  it('wears an accessory, swaps it, and takes it off', async () => {
+    const store = await withPet();
+    const wear = (itemId: string) => update(store, { type: 'toggle', itemId });
+    expect(await wear('starter:fedora')).toMatchObject({
+      ok: true,
+      pet: { placed: { clothes: { id: 'starter:fedora' } } },
+    });
+    expect(await wear('starter:sunglasses')).toMatchObject({
+      pet: { placed: { clothes: { id: 'starter:sunglasses' } } },
+    });
+    expect(await wear('starter:sunglasses')).toMatchObject({
+      pet: { placed: { clothes: null } },
+    });
+  });
+
+  it('refuses to wear a food and to eat an accessory', async () => {
+    const store = await withPet();
+    await hungry(store);
+    expect(
+      await update(store, { type: 'toggle', itemId: 'starter:cherry' })
+    ).toEqual({ ok: false, reason: 'Food is for eating.' });
+    expect(
+      await update(store, { type: 'feed', itemId: 'starter:band' })
+    ).toEqual({ ok: false, reason: 'Only food can be eaten.' });
   });
 });
 
