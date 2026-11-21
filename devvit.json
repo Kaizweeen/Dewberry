@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
-  "name": "<% name %>",
+  "name": "dewberry-daily",
   "post": {
     "dir": "dist/client",
     "entrypoints": {
@@ -20,23 +20,13 @@
   "menu": {
     "items": [
       {
-        "label": "Create a new post",
-        "description": "<% name %>",
+        "label": "Dewberry: force a new day",
+        "description": "Close the current day and post the next one now",
         "location": "subreddit",
         "forUserType": "moderator",
-        "endpoint": "/internal/menu/post-create"
-      },
-      {
-        "label": "Example form",
-        "description": "Show a simple form",
-        "location": "subreddit",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/example-form"
+        "endpoint": "/internal/menu/new-day"
       }
     ]
-  },
-  "forms": {
-    "exampleForm": "/internal/form/example-submit"
   },
   "triggers": {
     "onAppInstall": "/internal/triggers/on-app-install"
@@ -44,5 +34,16 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build"
+  },
+  "scheduler": {
+    "tasks": {
+      "daily": {
+        "endpoint": "/internal/cron/daily",
+        "cron": "0 12 * * *"
+      }
+    }
+  },
+  "dev": {
+    "subreddit": "dewberry_daily_dev"
   }
 }

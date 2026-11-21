@@ -1,0 +1,291 @@
+---
+name: Dewberry
+description: A daily drawing game inside a Reddit post, set in a pixel meadow.
+colors:
+  sky: '#53daff'
+  plate: '#f1f1f1'
+  line: '#838383'
+  line-hi: '#c3c3c3'
+  ink: '#565656'
+  cream: '#ffe59a'
+  caramel: '#e3a75c'
+  caramel-hi: '#f1c67b'
+  caramel-lo: '#c8873d'
+  toast: '#6b4420'
+  heart: '#ff5e55'
+  berry: '#6b53b8'
+  paper: '#fbf7ec'
+  disabled-fill: '#e4e4e4'
+  disabled-text: '#8d8d8d'
+  meter-track: '#cfcfcf'
+typography:
+  display:
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '40px'
+    fontWeight: 400
+    lineHeight: '44px'
+  headline:
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '32px'
+    fontWeight: 400
+    lineHeight: '36px'
+  title:
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '24px'
+    fontWeight: 400
+    lineHeight: '30px'
+  body:
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '16px'
+    fontWeight: 400
+    lineHeight: '22px'
+  label:
+    fontFamily: 'Silkscreen, monospace'
+    fontSize: '12px'
+    fontWeight: 400
+    lineHeight: '14px'
+rounded:
+  none: '0px'
+spacing:
+  unit: '4px'
+  gutter: '12px'
+components:
+  plate:
+    backgroundColor: '{colors.plate}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.none}'
+    padding: '4px'
+  button:
+    backgroundColor: '{colors.plate}'
+    textColor: '{colors.ink}'
+    typography: '{typography.title}'
+    rounded: '{rounded.none}'
+  button-hover:
+    backgroundColor: '#ffffff'
+  button-primary:
+    backgroundColor: '{colors.cream}'
+    textColor: '{colors.toast}'
+    typography: '{typography.title}'
+    rounded: '{rounded.none}'
+  button-primary-hover:
+    backgroundColor: '#fff0bd'
+  button-disabled:
+    backgroundColor: '{colors.disabled-fill}'
+    textColor: '{colors.disabled-text}'
+  tab:
+    backgroundColor: '{colors.cream}'
+    textColor: '{colors.toast}'
+    typography: '{typography.body}'
+    padding: '4px 16px'
+  sheet:
+    backgroundColor: '{colors.paper}'
+    size: '256px'
+---
+
+# Design System: Dewberry
+
+## Overview
+
+**Creative North Star: "Paper in a pixel meadow"**
+
+The world is the owner's pixel art: a flat blue sky, a grass horizon, a pet, and a waffle panel in caramel and cream. Everything the game adds on top is built from the same pixel grammar: grey plates with stepped corners, a pixel typeface in capitals, and icons drawn on a 7 pixel grid. The scene stays quiet so that it reads as a place, not a menu.
+
+The one thing that is not pixel art is the player's drawing. Drawings are smooth, round lines on a sheet of warm paper, and they are shown unaltered wherever they appear. The contrast is deliberate: the game is pixels, the player's hand is not.
+
+Screens are single views with no scrolling. Each one has one job and one cream button that moves the player forward.
+
+**Key Characteristics:**
+
+- The owner's art is used as drawn and scaled by whole numbers, with crisp pixels.
+- One unit (4px) sets every border, corner step, and gap.
+- Grey for structure, cream and caramel for the next action, red only for hearts.
+- Drawings sit on paper, large, never restyled.
+- No scrolling, no gradients in the interface, no soft shadows.
+
+## Colors
+
+A flat sky and neutral grey plates carry the interface. Warm waffle colors mark what the player should press next.
+
+### Primary
+
+- **Waffle Cream** (`cream`): the fill of the primary button and of the day tab. One primary button per screen.
+- **Toasted Brown** (`toast`): text on cream, and the focus ring on cream controls.
+- **Caramel** (`caramel`, `caramel-hi`, `caramel-lo`): the light and dark edges of cream controls, and the pockets of the waffle panel that hold drawings.
+
+### Secondary
+
+- **Heart Red** (`heart`): filled hearts, the heart badge on a drawing, and the brief flash of the meter when the line runs out. Nothing else is red.
+- **Dewberry Purple** (`berry`): the filled dewberries of the pet's fullness. Nothing else is purple.
+
+### Neutral
+
+- **Sky** (`sky`): the page background behind and around the scene.
+- **Plate Grey** (`plate`): the fill of panels and ordinary buttons.
+- **Edge Grey** (`line`, `line-hi`): the dark and light edges of plates, empty hearts, and large display text.
+- **Ink** (`ink`): body text, icons, the meter fill, and focus rings on grey controls.
+- **Paper** (`paper`): the drawing sheet and the backing of every drawing shown.
+- **Disabled** (`disabled-fill`, `disabled-text`): a button that cannot be pressed yet.
+- **Meter Track** (`meter-track`): the empty part of the line meter.
+
+### Named Rules
+
+**The Player's Colors Rule.** Any color outside this list belongs to a player's drawing. The interface never borrows a color from the picker, and never tints a drawing.
+
+**The One Cream Button Rule.** Cream means "this is the way forward". A screen has one cream button. Everything else is grey.
+
+## Typography
+
+**Display Font:** Silkscreen (with monospace fallback)
+**Body Font:** Silkscreen (with monospace fallback)
+
+**Character:** One pixel typeface at one weight, always in capitals. Hierarchy comes from size and from the plate the text sits on, never from weight or italics.
+
+### Hierarchy
+
+- **Display** (400, 40px, 44px line): the game's name in the feed view.
+- **Headline** (400, 32px, 36px line): the day's prompt, screen headings, and the main button of a screen.
+- **Title** (400, 24px, 30px line): other buttons.
+- **Body** (400, 16px, 22px line): supporting lines, counts, the day tab.
+- **Label** (400, 12px, 14px line): small notes. This is the smallest size allowed.
+
+### Named Rules
+
+**The On A Plate Rule.** Text never sits directly on the sky or the grass. It sits on a plate or a tab, so contrast does not depend on the scene behind it.
+
+## Layout
+
+The game is designed once, on a stage of 375 x 596. That is the measured size of Reddit's expanded view. The stage is scaled by the smaller of the two fit ratios and centered, and the sky fills whatever is left around it. There are no breakpoints.
+
+- Positions are absolute within the stage, on the 4px unit.
+- The side gutter is 12px. Full width plates are 351px wide.
+- The day tab sits at the top right, 12px from both edges.
+- The grass horizon is high on the Home and Result screens, where the pet stands, and low on the others.
+- The main menu is the landing page of every open day (owner's art and request, 2026-11-18). It is the only screen that fills the viewport instead of the stage, so it is the only screen laid out for a wide desktop window. Every other screen still sits in the 375 x 596 stage, centered.
+- Home is the pet's page, one tap from the menu. The pet's scene fills the top 216px, and one plate below it holds the prompt, one line about the day, the cream button, the two grey buttons (Feed and Inventory), and the streak.
+- The drawing sheet is 256 x 256 and is never scaled by a fraction on the Draw screen.
+- The inline view in the feed is fluid, because its size is not known. It shows the pet, the name, and one Play button.
+
+## Elevation & Depth
+
+The system is flat. Depth comes from two toned edges on each plate (a light edge at the top and left, a dark edge at the bottom and right) and from layering in the scene: sky, grass, bush, shadow, pet, then plates.
+
+- **Waffle pocket:** an inner caramel highlight and a cream outline, in whole pixels, hold a drawing in the panel.
+- **Heart badge:** a hard white outline, 2px on each side, keeps the badge readable over any drawing.
+
+### Named Rules
+
+**The No Blur Rule.** No blurred shadows and no glows. Every edge is a hard step.
+
+## Motion
+
+The pixel world moves in hard steps, never in smooth glides. Movement is one unit (4px) at a time, and everything ambient is slow enough to ignore.
+
+- **The pet:** it blinks (one blink, then a double blink, on a loop of about five seconds) and breathes by rising one unit and settling, with its shadow narrowing in step. Clothes ride along. A hungry pet keeps its eyes shut, breathes slower, and its "z z" drifts with it.
+- **The meadow:** the sky drifts side to side over two minutes. The bush rustles every nine seconds. The owner's ladybug walks along the grass, pauses, walks off, and comes back.
+- **Feedback:** a plate steps up into place when its screen opens (180ms). A heart pops when it lands on a drawing. What the pet earned drops onto the claim card one piece at a time.
+- **The one smooth thing:** on the result page the player's drawing redraws itself line by line, in the order it was drawn, in about 2.4 seconds. Drawings are the only smooth marks in the game, so they are the only smooth motion.
+
+### Named Rules
+
+**The Hard Step Rule.** Pixel art moves with stepped timing. Only a player's drawing may ease or trace.
+
+**The Still Rule.** With reduced motion on, nothing animates. Every state that motion shows is also said in words or shown at rest (the hungry pet's eyes stay shut, the ladybug rests on the grass).
+
+## Shapes
+
+Corners are stepped, not rounded: each corner is cut in two 4px steps, the same steps as the owner's nameplate and buttons. There are no radii anywhere. Icons are drawn as pixel maps on a grid of 7 columns. Pixel art is always rendered with crisp pixels.
+
+Drawings are the exception: lines are 8 units wide on the 256 sheet with round ends and round joins.
+
+## Components
+
+### Plates
+
+The basic container. A grey fill with a 4px toned edge and stepped corners. Plates hold text, groups of controls, and the drawing sheet.
+
+### Buttons
+
+- **Shape:** a plate with stepped corners, text centered, usually Title size.
+- **Ordinary:** grey fill, ink text, an even dark edge. Hover turns the fill white.
+- **Primary:** cream fill, toast text, caramel edges. Hover lightens the cream.
+- **Pressed:** the button moves down one unit (4px).
+- **Toggled on** (pen, eraser): white fill with an ink edge.
+- **Focus:** an inner ring one unit thick, ink on grey and toast on cream.
+- **Disabled:** pale grey fill and grey text, no press movement.
+- **Art buttons:** the owner's drawn home and edit buttons are used as images, brighten slightly on hover, and take an ink outline on focus.
+
+### Day tab
+
+A small cream plate at the top right with the day number. It is a label, not a control.
+
+### Drawing sheet
+
+A 256 x 256 sheet of paper inside a plate. Crosshair cursor, no touch scrolling. Only the primary pointer draws.
+
+### Line meter
+
+A flat bar that drains as the player draws. The big meter on the Draw screen is 12px tall with an ink fill on a grey track. When the line runs out it flashes red twice in hard steps, and a text notice says the same thing.
+
+### Color picker
+
+A square for brightness and strength, a strip for hue, and square knobs with a white border and an ink outline. Below it, chips of the colors already used, as small plates. The chosen chip lifts one unit and takes an ink edge.
+
+### Drawings in the gallery
+
+Each drawing sits on paper in a pocket of the waffle panel. Hover lifts it 4px. Focus draws a toast outline. A hearted drawing gets a heart badge at its top right corner.
+
+### The pet and its things
+
+The pet stands on the grass at 12 times its drawn size, with the owner's nameplate under it and the owner's edit button beside the nameplate. A pet with no fullness left shows a small pixel "z z". Scenery items sit beside the pet as drawings on small paper cards with a hard grey outline. Clothes are the one place a drawing is shown without paper: lines only, on the pet's head. Food is eaten, so it is never shown in the scene.
+
+Each pet is drawn from one strip of 14 frames (`public/art/<pet>-fed.png`), which holds its resting, blinking, and eating poses. The old single sprites are gone.
+
+### Main menu
+
+The first screen of an open day, and the one screen that is not on the stage. It fills the viewport with the owner's menu art: the sky, the land with its river, the hand-drawn Dewberry logo, and two drawn buttons, DRAW and UR PET. It has no type of its own. The logo and the buttons carry their names for screen readers.
+
+- **Scale:** the art was drawn on a canvas of 148 x 98. Whole-number scales are picked from the viewport (`menuUnits`): the backdrop covers the window, and the logo and buttons take the largest scale that fits, never larger than the backdrop's. On a desktop window that is the owner's composition as drawn. On a phone the logo shrinks to fit the width and the buttons stay at least 44 pixels tall.
+- **Buttons:** DRAW leads to the day's step (the drawing, then hearts, then the result). UR PET leads to the pet's home.
+- **Life:** the sky drifts, the logo floats one unit up and down, the buttons step in, and the player's own pet stands on the grass beside UR PET.
+
+The menu art in `public/art/menu-*.png` is the owner's pixel art recovered pixel for pixel from larger exports, not redrawn.
+
+### The easel
+
+On the result page the player's drawing sits on the owner's easel, at 5 times its drawn size. The drawing is shown as lines only, on the easel's own canvas, and it redraws once when the page opens.
+
+### Fullness
+
+Three pixel dewberries in a row, the same pattern as hearts: purple when full, an empty grey outline when not. The row always shows all three. On Home it sits on a small plate to the left of the nameplate, at 2 times. On the Food tab it sits beside the Feed button, larger. Its label says the same thing in words.
+
+### Inventory
+
+The owner's waffle panel at 12 times its drawn size. Each pocket holds one owned drawing on paper. Four labelled tab buttons sit above the panel's four dot groups, and the chosen tab takes the toggled look. A pixel check marks what is placed and which pet is current. The plate under the panel shows the chosen item larger, who made it, and the one cream button: Place or Take away for clothes and scenery, Feed for food. Each food carries a small grey number plate at its corner with the servings it has left, and the Food tab keeps the pet's fullness in sight beside the button.
+
+### Claim card
+
+One plate, shown before anything else when the pet has earned items: where the player placed, then the earned drawings on paper with their makers, then one cream button.
+
+### Hearts
+
+Five pixel hearts in a row: red when left to give, an empty grey outline when spent. The row always shows all five.
+
+## Do's and Don'ts
+
+### Do:
+
+- **Do** build every new control from a plate: stepped corners, a 4px edge, a flat fill.
+- **Do** keep the 4px unit for borders, gaps, and press movement.
+- **Do** show drawings on paper, as large as the screen allows, exactly as drawn.
+- **Do** put text on a plate or a tab.
+- **Do** say a state in words as well as in color or motion.
+- **Do** respect reduced motion: with it on, nothing animates.
+
+### Don't:
+
+- **Don't** use rounded corners, blurred shadows, or gradients in the interface. The color picker's own surfaces are the only gradients.
+- **Don't** redraw, recolor, or smooth the owner's art.
+- **Don't** use red for anything but hearts and the empty meter flash, or purple for anything but fullness.
+- **Don't** add a second cream button to a screen.
+- **Don't** make a screen scroll. If it does not fit in 375 x 596, it has too much on it.
+- **Don't** go below 12px text.
