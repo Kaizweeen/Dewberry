@@ -8,6 +8,7 @@ import { Gallery } from './screens/Gallery';
 import { Home } from './screens/Home';
 import { Inventory } from './screens/Inventory';
 import { Menu } from './screens/Menu';
+import { Settings } from './screens/Settings';
 import type { InventoryTab } from './screens/Inventory';
 import { PetPick } from './screens/PetPick';
 import { Result } from './screens/Result';
@@ -16,7 +17,14 @@ import type { HomeStep } from './text';
 import { Stage } from './ui';
 
 type Screen =
-  'menu' | 'home' | 'draw' | 'gallery' | 'result' | 'closed' | 'inventory';
+  | 'menu'
+  | 'home'
+  | 'draw'
+  | 'gallery'
+  | 'result'
+  | 'closed'
+  | 'inventory'
+  | 'settings';
 
 // Where the home page's main button leads, for each step of the day.
 const STEP_SCREEN = {
@@ -167,10 +175,20 @@ export function App() {
   if (before === null && current === 'menu' && view.pet !== null) {
     return (
       <Menu
-        pet={view.pet}
-        hungry={view.fullness <= 0}
-        onDraw={() => setScreen(STEP_SCREEN[homeStep(view)])}
-        onPet={() => setScreen('home')}
+        onSettings={() => setScreen('settings')}
+        pet={{ id: view.pet, hungry: view.fullness <= 0 }}
+        buttons={[
+          {
+            art: '/art/menu-draw.png',
+            label: 'Draw',
+            onClick: () => setScreen(STEP_SCREEN[homeStep(view)]),
+          },
+          {
+            art: '/art/menu-pet.png',
+            label: 'Your pet',
+            onClick: () => setScreen('home'),
+          },
+        ]}
       />
     );
   }
@@ -259,6 +277,8 @@ export function App() {
         return <Inventory start={invTab} onBack={() => load('home')} />;
       case 'closed':
         return <Closed view={view} pet={pet} />;
+      case 'settings':
+        return <Settings onBack={() => setScreen('menu')} />;
       case 'menu':
         // Drawn outside the stage, above.
         return null;

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import type { PointerEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { FULL_MAX, PETS } from '../../shared/pets';
 import type { PetId } from '../../shared/pets';
 import type { Item, PetAction, PetView } from '../../shared/types';
@@ -12,7 +14,7 @@ import {
   petLabel,
   unlockLine,
 } from '../text';
-import { Fullness, Icon, ItemArt, Pet } from '../ui';
+import { Fullness, Icon, ItemArt, PET_PX, Pet } from '../ui';
 
 const GENERIC = 'Something went wrong. Try again.';
 const messageOf = (err: unknown): string =>
@@ -31,12 +33,20 @@ const TABS: { id: Tab; name: string; left: number }[] = [
   { id: 'pets', name: 'Pets', left: 268 },
 ];
 
+// How far from the pet, in screen pixels, a dropped food still counts as fed,
+// and how far the pointer must travel before a press is a drag.
+const DROP_SLACK = 16;
+const DRAG_FROM = 8;
+
 const pocket = (i: number) => ({
   left: 2 + (3 + 7 * (i % 4)) * 12,
   top: 62 + (4 + 7 * Math.floor(i / 4)) * 12,
   width: 48,
   height: 48,
 });
+
+// The pet's drop zone on the Food tab's plate: as tall as the plate's inside.
+const DROP_BOX = { width: 72, height: 72, flex: 'none' } as const;
 
 // The preview slot on the plate, when it holds a pet instead of a drawing.
 const SLOT = {
@@ -70,6 +80,39 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
   // animation when the pet is fed again before it finishes.
   const [eating, setEating] = useState<number | null>(null);
   const busy = useRef(false);
+  // A food being dragged to the pet. `from` is where the press began, and
+  // `moved` turns true once the pointer has gone far enough to be a drag and
+  // not a tap. `ghost` is the food's picture following the pointer, and `over`
+  // is whether it is close enough to the pet to be fed.
+  const press = useRef<{
+    id: string;
+    x: number;
+    y: number;
+    moved: boolean;
+    size: number;
+  } | null>(null);
+  const [ghost, setGhost] = useState<{
+    item: Item;
+    x: number;
+    y: number;
+    size: number;
+  } | null>(null);
+  const [over, setOver] = useState(false);
+  const zone = useRef<HTMLSpanElement>(null);
+  // Set when a drag ends, so the click that follows it is not taken for a tap.
+  const dragged = useRef(false);
+
+  /** Whether a point is on the pet's drop zone, with a little room around it. */
+  const onPet = (x: number, y: number) => {
+    const r = zone.current?.getBoundingClientRect();
+    return (
+      r !== undefined &&
+      x >= r.left - DROP_SLACK &&
+      x <= r.right + DROP_SLACK &&
+      y >= r.top - DROP_SLACK &&
+      y <= r.bottom + DROP_SLACK
+    );
+  };
 
   const fetchPet = () => {
     api
@@ -207,7 +250,7 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
       ? 'No food yet. Draw on a food day to earn some.'
       : 'Play today to start your collection.';
   } else if (onFood) {
-    text = `Tap a food to feed ${pv.name}.`;
+    text = `Drag a food to ${pv.name}.`;
     if (item !== undefined) {
       text = foodLine(item, pv.servings[item.id] ?? 0, pv.name, full);
       if (!full)
@@ -226,7 +269,83 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
   }
   if (note !== null) text = note;
 
+  // The pointer handlers of a food pocket. A press that travels is a drag: the
+  // food follows the pointer and the pet opens its mouth when it gets close. A
+  // press that stays put is a tap, which only selects the food (see onClick).
+  const dragOf = (it: Item) => ({
+    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // Some webviews refuse. The drag still follows the pointer over the page.
+      }
+      press.current = {
+        id: it.id,
+        x: e.clientX,
+        y: e.clientY,
+        moved: false,
+        size: e.currentTarget.getBoundingClientRect().width * 1.15,
+      };
+    },
+    onPointerMove: (e: PointerEvent<HTMLButtonElement>) => {
+      const p = press.current;
+      if (p === null || p.id !== it.id) return;
+      if (!p.moved) {
+        if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < DRAG_FROM) return;
+        p.moved = true;
+        select(it.id);
+      }
+      setGhost({ item: it, x: e.clientX, y: e.clientY, size: p.size });
+      setOver(!full && onPet(e.clientX, e.clientY));
+    },
+    onPointerUp: (e: PointerEvent<HTMLButtonElement>) => {
+      const p = press.current;
+      press.current = null;
+      if (p === null || !p.moved) return;
+      dragged.current = true;
+      setGhost(null);
+      setOver(false);
+      if (!onPet(e.clientX, e.clientY)) return;
+      if (full) setNote(foodLine(it, pv.servings[it.id] ?? 0, pv.name, true));
+      else void run({ type: 'feed', itemId: it.id });
+    },
+    onPointerCancel: () => {
+      press.current = null;
+      setGhost(null);
+      setOver(false);
+    },
+    onDragStart: (e: { preventDefault: () => void }) => e.preventDefault(),
+  });
+
   const preview = (() => {
+    if (onFood && pv.pet !== null) {
+      // On the Food tab the pet waits here for its food: it holds its mouth
+      // open while a food is over it, and eats when the food is dropped.
+      const size = PET_PX[pv.pet];
+      const mood =
+        eating !== null
+          ? 'eating'
+          : over
+            ? 'open'
+            : full
+              ? 'idle'
+              : pv.fullness <= 0
+                ? 'asleep'
+                : 'idle';
+      return (
+        <span ref={zone} className={over ? 'drop on' : 'drop'} style={DROP_BOX}>
+          <Pet
+            key={eating ?? 0}
+            pet={pv.pet}
+            scale={Math.floor(72 / Math.max(size.w, size.h))}
+            mood={mood}
+            {...(eating === null
+              ? {}
+              : { onAnimationEnd: () => setEating(null) })}
+          />
+        </span>
+      );
+    }
     if (eating !== null && pv.pet !== null) {
       // The food gives way to the pet eating it, then comes back if any is left.
       return (
@@ -319,14 +438,18 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
             <button
               key={it.id}
               className="entry paper"
-              style={pocket(i)}
+              style={onFood ? { ...pocket(i), touchAction: 'none' } : pocket(i)}
+              {...(onFood ? dragOf(it) : {})}
               aria-label={`${itemLabel(it)}${
                 it.name === undefined ? `, day ${it.day}` : ''
               }${placed.has(it.id) ? ', on your pet' : ''}${
                 onFood ? `, servings left: ${pv.servings[it.id] ?? 0}` : ''
               }`}
               aria-pressed={sel === it.id}
-              onClick={() => select(it.id)}
+              onClick={() => {
+                if (dragged.current) dragged.current = false;
+                else select(it.id);
+              }}
             >
               <ItemArt item={it} />
               {placed.has(it.id) && (
@@ -435,6 +558,28 @@ export function Inventory(props: { onBack: () => void; start?: Tab }) {
           </>
         )}
       </div>
+      {ghost !== null &&
+        // The food in the player's hand. It is outside the stage, which is scaled,
+        // so it is placed in screen pixels and ignores the pointer.
+        createPortal(
+          <div
+            aria-hidden="true"
+            className={ghost.item.art === undefined ? 'art paper' : 'art'}
+            style={{
+              position: 'fixed',
+              left: ghost.x - ghost.size / 2,
+              // Held above the pointer, so the pet's open mouth stays in view.
+              top: ghost.y - ghost.size * 0.95,
+              width: ghost.size,
+              height: ghost.size,
+              pointerEvents: 'none',
+              zIndex: 50,
+            }}
+          >
+            <ItemArt item={ghost.item} />
+          </div>,
+          document.body
+        )}
     </>
   );
 }

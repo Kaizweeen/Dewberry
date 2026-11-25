@@ -3,51 +3,22 @@ import './index.css';
 import { requestExpandedMode } from '@devvit/web/client';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Ladybug, Pet } from './ui';
+import { Menu } from './screens/Menu';
 
-// The inline view in the feed. Its size is not known, so it is fluid.
+// The inline view in the feed: the owner's menu art with one PLAY button. Its
+// size is not known, so the menu fits itself to the frame it is given. The pet
+// is not shown here, because this view does not know whose pet it is.
 export function Splash() {
   return (
-    <main
-      className="stage"
-      style={{
-        inset: 0,
-        left: 0,
-        top: 0,
-        width: '100%',
-        height: '100%',
-        display: 'grid',
-        placeItems: 'center',
-        alignContent: 'center',
-        gap: 12,
-        overflow: 'hidden',
-      }}
-    >
-      <img
-        src="/art/grass.png"
-        alt=""
-        style={{
-          left: 0,
-          bottom: 0,
-          width: '100%',
-          height: '45%',
-          objectFit: 'cover',
-          objectPosition: 'top',
-        }}
-      />
-      <Ladybug top="calc(55% + 24px)" />
-      <Pet pet="star" scale={10} bob style={{ position: 'relative' }} />
-      <h1 className="px in t40 display" style={{ padding: '6px 20px 10px' }}>
-        <span style={{ position: 'relative' }}>Dewberry</span>
-      </h1>
-      <button
-        className="px in btn primary t24"
-        style={{ height: 56, width: 160 }}
-        onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
-      >
-        Play
-      </button>
-    </main>
+    <Menu
+      buttons={[
+        {
+          art: '/art/menu-play.png',
+          label: 'Play',
+          onClick: (e) => requestExpandedMode(e, 'game'),
+        },
+      ]}
+    />
   );
 }
 
