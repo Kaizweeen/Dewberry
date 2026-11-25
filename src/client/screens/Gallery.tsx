@@ -2,7 +2,28 @@ import { useEffect, useRef, useState } from 'react';
 import type { DayView, GalleryPage } from '../../shared/types';
 import { ApiFailure, api } from '../api';
 import { DrawingArt } from '../draw/DrawingArt';
-import { Hearts, Icon } from '../ui';
+import { Hearts, Icon, useWide } from '../ui';
+
+// Where everything stands, on the phone and on the wide stage. The waffle panel
+// is 31 x 28 art pixels, drawn at `k` screen pixels each (12 on the phone, 14
+// on the wide stage), and its twelve pockets hold the drawings. On the wide
+// stage the controls stand in a column to its right.
+const PHONE = {
+  k: 12,
+  panel: { left: 2, top: 62 },
+  home: { left: 12, top: 12 },
+  bar: { left: 64, top: 12, width: 299 },
+  text: { left: 12, top: 406, width: 351 },
+  buttons: { left: 12, top: 476, width: 351 },
+} as const;
+const DESKTOP = {
+  k: 14,
+  panel: { left: 12, top: 60 },
+  home: { left: 462, top: 60 },
+  bar: { left: 514, top: 60, width: 274 },
+  text: { left: 462, top: 116, width: 326 },
+  buttons: { left: 462, top: 392, width: 326 },
+} as const;
 
 const GENERIC = 'Something went wrong. Try again.';
 const messageOf = (err: unknown): string =>
@@ -13,6 +34,7 @@ export function Gallery(props: {
   onDone: (heartsLeft: number) => void;
   onClosed: () => void;
 }) {
+  const L = useWide() ? DESKTOP : PHONE;
   const [entries, setEntries] = useState<GalleryPage['entries']>([]);
   const [heartsLeft, setHeartsLeft] = useState(props.view.heartsLeft);
   const [hearted, setHearted] = useState<ReadonlySet<string>>(new Set());
@@ -84,13 +106,13 @@ export function Gallery(props: {
     <>
       <button
         className="artbtn"
-        style={{ left: 12, top: 12, width: 44, height: 44 }}
+        style={{ ...L.home, width: 44, height: 44 }}
         aria-label="Home"
         onClick={() => props.onDone(heartsLeft)}
       >
         <img src="/art/home-btn.png" alt="" />
       </button>
-      <div className="px" style={{ left: 64, top: 12, width: 299, height: 44 }}>
+      <div className="px" style={{ ...L.bar, height: 44 }}>
         <div className="heartbar">
           <Hearts left={heartsLeft} />
           <span className="t16">{heartsLeft} left</span>
@@ -99,7 +121,7 @@ export function Gallery(props: {
       <img
         src="/art/panel.png"
         alt=""
-        style={{ left: 2, top: 62, width: 372, height: 336 }}
+        style={{ ...L.panel, width: 31 * L.k, height: 28 * L.k }}
       />
       {entries.map((item, i) => {
         const done = hearted.has(item.id);
@@ -108,10 +130,10 @@ export function Gallery(props: {
             key={item.id}
             className="entry paper"
             style={{
-              left: 2 + (3 + 7 * (i % 4)) * 12,
-              top: 62 + (4 + 7 * Math.floor(i / 4)) * 12,
-              width: 48,
-              height: 48,
+              left: L.panel.left + (3 + 7 * (i % 4)) * L.k,
+              top: L.panel.top + (4 + 7 * Math.floor(i / 4)) * L.k,
+              width: 4 * L.k,
+              height: 4 * L.k,
             }}
             aria-label={`Drawing ${i + 1}`}
             aria-pressed={done}
@@ -126,7 +148,7 @@ export function Gallery(props: {
           </button>
         );
       })}
-      <div className="px" style={{ left: 12, top: 406, width: 351 }}>
+      <div className="px" style={L.text}>
         <p className="t16" style={{ padding: '8px 12px' }} aria-live="polite">
           {text}
         </p>
@@ -134,9 +156,7 @@ export function Gallery(props: {
       <div
         style={{
           position: 'absolute',
-          left: 12,
-          top: 476,
-          width: 351,
+          ...L.buttons,
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           gap: 8,

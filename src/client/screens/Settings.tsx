@@ -1,14 +1,20 @@
 import { exitExpandedMode } from '@devvit/web/client';
 import { useState } from 'react';
+import { useWide } from '../ui';
 import { loadPrefs, savePrefs } from '../settings';
 import type { Prefs } from '../settings';
 
 // The owner's panel is 63 x 84 art pixels, drawn at 5 times, centered in the
 // stage. The two switches and QUIT are drawn into it, so each control is a
 // transparent button laid over its picture, in art pixels from the panel's corner.
-const S = 5;
-const PANEL = { w: 63, h: 84, left: 30, top: 36 };
-const px = (n: number) => n * S;
+// On the wide stage the panel is the same size (the stage is 500 tall, and a
+// bigger whole-number scale would not fit), stands left of center, and BACK
+// waits at its right.
+const SPEC = {
+  phone: { s: 5, left: 30, top: 36, back: { left: 12, top: 504, width: 351 } },
+  wide: { s: 5, left: 130, top: 40, back: { left: 469, top: 40, width: 200 } },
+} as const;
+const PANEL = { w: 63, h: 84 };
 
 // Each row is one tap target: the label and its switch. `sw` is the switch itself.
 const ROWS: { key: keyof Prefs; label: string; y: number }[] = [
@@ -25,6 +31,8 @@ const SWITCH = { x: 43, w: 13, h: 9, dy: 1 };
  * panel says so instead of pretending the switches do something.
  */
 export function Settings(props: { onBack: () => void }) {
+  const sp = useWide() ? SPEC.wide : SPEC.phone;
+  const px = (n: number) => n * sp.s;
   const [prefs, setPrefs] = useState(loadPrefs);
 
   const flip = (key: keyof Prefs) => {
@@ -40,8 +48,8 @@ export function Settings(props: { onBack: () => void }) {
         src="/art/settings-panel.png"
         alt=""
         style={{
-          left: PANEL.left,
-          top: PANEL.top,
+          left: sp.left,
+          top: sp.top,
           width: px(PANEL.w),
           height: px(PANEL.h),
         }}
@@ -54,8 +62,8 @@ export function Settings(props: { onBack: () => void }) {
           aria-checked={prefs[row.key]}
           aria-label={row.label}
           style={{
-            left: PANEL.left + px(5),
-            top: PANEL.top + px(row.y),
+            left: sp.left + px(5),
+            top: sp.top + px(row.y),
             width: px(51),
             height: px(11),
           }}
@@ -95,8 +103,8 @@ export function Settings(props: { onBack: () => void }) {
         className="artbtn"
         aria-label="Quit"
         style={{
-          left: PANEL.left + px(15),
-          top: PANEL.top + px(51),
+          left: sp.left + px(15),
+          top: sp.top + px(51),
           width: px(31),
           height: px(12),
         }}
@@ -106,15 +114,15 @@ export function Settings(props: { onBack: () => void }) {
         className="t12"
         style={{
           position: 'absolute',
-          left: PANEL.left + px(6),
-          top: PANEL.top + px(66),
+          left: sp.left + px(6),
+          top: sp.top + px(66),
           width: px(51),
           textAlign: 'center',
         }}
       >
         No sound yet. Your choices are saved for when it arrives.
       </p>
-      <div style={{ position: 'absolute', left: 12, top: 504, width: 351 }}>
+      <div style={{ position: 'absolute', ...sp.back }}>
         <button
           className="px in btn t24"
           style={{ height: 60, width: '100%' }}

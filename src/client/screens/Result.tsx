@@ -3,7 +3,7 @@ import { DrawingArt } from '../draw/DrawingArt';
 import type { PetId } from '../../shared/pets';
 import type { DayView } from '../../shared/types';
 import { postUrl, streakText } from '../text';
-import { Icon, PetScene } from '../ui';
+import { Icon, Origin, PetScene, WIDE_SCENE, useWide } from '../ui';
 
 export function Result(props: {
   view: DayView;
@@ -13,14 +13,28 @@ export function Result(props: {
 }) {
   const { view } = props;
   const left = view.heartsLeft;
+  // Like the pet's home: on the wide stage the scene stands in the left half
+  // and the panel fills the right half, with a bigger easel.
+  const wide = useWide();
+  const at = wide ? WIDE_SCENE : { x: 0, y: 0 };
+  const panel = wide
+    ? { left: 412, top: 52, width: 376, height: 436 }
+    : { left: 12, top: 216, width: 351, height: 368 };
+  // The owner's easel is 32 x 32 art pixels, drawn at 5 times on the phone and
+  // 6 times on the wide stage. The drawing sits in its canvas.
+  const e = wide
+    ? { size: 192, left: 41, top: 43, art: 110 }
+    : { size: 160, left: 34, top: 36, art: 92 };
   return (
     <>
-      <PetScene
-        pet={props.pet}
-        fullness={view.fullness}
-        placed={view.placed}
-        name={view.petName}
-      />
+      <Origin x={at.x} y={at.y}>
+        <PetScene
+          pet={props.pet}
+          fullness={view.fullness}
+          placed={view.placed}
+          name={view.petName}
+        />
+      </Origin>
       <button
         className="artbtn"
         style={{ left: 12, top: 12, width: 44, height: 44 }}
@@ -32,10 +46,7 @@ export function Result(props: {
       <div className="px tab t16" style={{ right: 12, top: 12 }}>
         <span>Day {view.day}</span>
       </div>
-      <div
-        className="px"
-        style={{ left: 12, top: 216, width: 351, height: 368 }}
-      >
+      <div className="px" style={panel}>
         <div className="stack" style={{ padding: '20px 16px 16px' }}>
           <h1 className="t32 display">Your drawing is in</h1>
           <div
@@ -52,23 +63,23 @@ export function Result(props: {
               style={{
                 position: 'relative',
                 flex: 'none',
-                width: 160,
-                height: 160,
+                width: e.size,
+                height: e.size,
               }}
             >
               <img
                 src="/art/easel.png"
                 alt=""
-                style={{ left: 0, top: 0, width: 160, height: 160 }}
+                style={{ left: 0, top: 0, width: e.size, height: e.size }}
               />
               <span
                 className="art"
                 style={{
                   position: 'absolute',
-                  left: 34,
-                  top: 36,
-                  width: 92,
-                  height: 92,
+                  left: e.left,
+                  top: e.top,
+                  width: e.art,
+                  height: e.art,
                 }}
               >
                 {view.myEntry !== null && (

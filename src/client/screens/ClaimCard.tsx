@@ -1,13 +1,23 @@
 import type { Claim } from '../../shared/types';
 import { DrawingArt } from '../draw/DrawingArt';
 import { claimItemsShown, claimLines } from '../text';
+import { useWide } from '../ui';
 
 /** What the player's pet got for the days that closed since they last played. */
 export function ClaimCard(props: { claim: Claim; onDone: () => void }) {
   const { claim } = props;
+  // Centered on the wide stage, at the top of the phone's.
+  const wide = useWide();
   const { shown, more } = claimItemsShown(claim.items.length);
   return (
-    <div className="px" style={{ left: 12, top: 24, width: 351 }}>
+    <div
+      className="px"
+      style={
+        wide
+          ? { left: 190, top: 40, width: 420 }
+          : { left: 12, top: 24, width: 351 }
+      }
+    >
       <div style={{ display: 'grid', gap: 12, padding: 16 }}>
         <div className="t16" style={{ display: 'grid', gap: 2 }}>
           {claimLines(claim.days).map((line) => (

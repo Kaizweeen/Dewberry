@@ -34,7 +34,8 @@ body {
 .viewport {
   position: fixed;
   inset: 0;
-  overflow: hidden;
+  /* clip, not hidden: focus cannot scroll a clipped box. */
+  overflow: clip;
   background: #53daff;
 }
 .stage {
@@ -43,9 +44,8 @@ body {
   top: 50%;
   width: 375px;
   height: 596px;
-  overflow: hidden;
-  /* The sky and grass are wider than the stage. clip also stops focus from scrolling it. */
-  overflow: clip;
+  /* The sky and grass run past the stage to the window's edge, so nothing is clipped here. */
+  overflow: visible;
   font-family: 'Silkscreen', monospace;
   text-transform: uppercase;
   color: var(--ink);
@@ -75,23 +75,21 @@ body {
 .stage ul {
   list-style: none;
 }
-.stage .sky {
-  left: -388px;
-  top: 0;
-  width: 1152px;
-  height: 384px;
-}
+/* The backdrop layers hold the sky and grass pictures, which Stage places and
+   mirrors out past the stage. The fills carry each picture's own top or bottom
+   color on to the window's edge. */
+.stage .sky,
 .stage .grass {
-  left: -388px;
-  top: 296px;
-  width: 1152px;
-  height: 384px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
 }
-.stage .grass.high {
-  left: -676px;
-  top: 112px;
-  width: 1728px;
-  height: 576px;
+.stage .fill {
+  position: absolute;
+  left: -4000px;
+  width: 8800px;
 }
 
 /* Pixel-chamfered box, same corner steps as the owner's nameplate and buttons. */
