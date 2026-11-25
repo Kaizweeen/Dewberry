@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { FULL_MAX } from '../shared/pets';
 import type { PetId } from '../shared/pets';
@@ -13,43 +13,154 @@ export type CssVars = CSSProperties & Record<`--${string}`, string | number>;
 /** Lets an inline style object carry custom properties. */
 export const vars = (style: CssVars): CssVars => style;
 
-const STAGE_W = 375;
-const STAGE_H = 596;
+// The game has two stages, each drawn in its own coordinates and scaled to fit
+// the window. A window wider than it is tall (1.15 or more) gets the wide stage,
+// laid out for desktop. Anything else gets the phone's tall stage. Whatever the
+// stage does not cover, the meadow does: the sky and grass run to every edge.
+export const NARROW = { w: 375, h: 596 } as const;
+export const WIDE = { w: 800, h: 500 } as const;
+const WIDE_FROM = 1.15;
 
-const fitScale = () => {
-  const scale = Math.min(
-    window.innerWidth / STAGE_W,
-    window.innerHeight / STAGE_H
+type Fit = { wide: boolean; scale: number; bx: number; by: number };
+
+/** Which stage fits the window, how big it is drawn, and how far the meadow must reach past it. */
+export function fit(vw: number, vh: number): Fit {
+  const wide = vw / vh >= WIDE_FROM;
+  const d = wide ? WIDE : NARROW;
+  const scale = Math.min(vw / d.w, vh / d.h);
+  const s = scale > 0 ? scale : 1;
+  return {
+    wide,
+    scale: s,
+    bx: Math.max(0, (vw / s - d.w) / 2),
+    by: Math.max(0, (vh / s - d.h) / 2),
+  };
+}
+
+const read = () => fit(window.innerWidth, window.innerHeight);
+
+const LayoutContext = createContext(false);
+
+/** Whether the screen is drawn on the wide (desktop) stage. */
+export const useWide = () => useContext(LayoutContext);
+
+/**
+ * A point on the stage that a screen's phone-sized coordinates are measured
+ * from. Anything inside it keeps the left and top it had on the phone, so a
+ * screen can be moved as a whole without redrawing it.
+ */
+export function Origin(props: { x: number; y: number; children: ReactNode }) {
+  return (
+    <div style={{ position: 'absolute', left: props.x, top: props.y }}>
+      {props.children}
+    </div>
   );
-  return scale > 0 ? scale : 1;
-};
+}
 
-/** The sky fills the viewport. The game sits in a 375 x 596 box, scaled to fit and centered. */
+/** Where the pet's scene (375 wide, 216 tall) stands on the wide stage: the left half, centered. */
+export const WIDE_SCENE = { x: 12, y: 142 } as const;
+
+// The owner's sky and grass are 96 x 32 art pixels, drawn at 12 times. Beyond
+// the picture, copies are mirrored so their edges meet the picture's own.
+const BACKDROP_W = 1152;
+const SKY_TOP = '#83dbfe';
+const GRASS_BOTTOM = '#95d85f';
+
+function Tiles(props: {
+  src: string;
+  width: number;
+  height: number;
+  top: number;
+  centre: number;
+  reach: number;
+}) {
+  const { width, centre } = props;
+  const copies = Math.max(0, Math.ceil((props.reach - width / 2) / width));
+  const out: ReactNode[] = [];
+  for (let k = -copies; k <= copies; k++)
+    out.push(
+      <img
+        key={k}
+        src={props.src}
+        alt=""
+        style={{
+          left: centre - width / 2 + k * width,
+          top: props.top,
+          width,
+          height: props.height,
+          ...(k % 2 === 0 ? {} : { transform: 'scaleX(-1)' }),
+        }}
+      />
+    );
+  return <>{out}</>;
+}
+
+/** The sky and grass fill the window. The game sits in its stage, scaled to fit and centered. */
 export function Stage(props: {
   horizon?: 'low' | 'high';
   children: ReactNode;
 }) {
-  const [scale, setScale] = useState(fitScale);
+  const [f, setF] = useState(read);
   useEffect(() => {
-    const onResize = () => setScale(fitScale());
+    const onResize = () => setF(read());
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+  const d = f.wide ? WIDE : NARROW;
+  const high = props.horizon === 'high';
+  // The grass is drawn larger when the horizon is high. On the wide stage the
+  // pet's scene is lowered to the middle, so a high horizon is lowered with it.
+  const grass = high
+    ? { w: BACKDROP_W * 1.5, h: 576, top: 112 + (f.wide ? WIDE_SCENE.y : 0) }
+    : { w: BACKDROP_W, h: 384, top: 296 };
+  const reach = f.bx + 64;
   return (
-    <div className="viewport">
-      <div
-        className="stage"
-        style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
-      >
-        <img className="sky drift" src="/art/sky.png" alt="" />
-        <img
-          className={props.horizon === 'high' ? 'grass high' : 'grass'}
-          src="/art/grass.png"
-          alt=""
-        />
-        {props.children}
+    <LayoutContext.Provider value={f.wide}>
+      <div className="viewport">
+        <div
+          className="stage"
+          style={{
+            width: d.w,
+            height: d.h,
+            transform: `translate(-50%, -50%) scale(${f.scale})`,
+          }}
+        >
+          <div
+            className="fill"
+            style={{ top: -4000, height: 4000, background: SKY_TOP }}
+          />
+          <div className="sky drift">
+            <Tiles
+              src="/art/sky.png"
+              width={BACKDROP_W}
+              height={384}
+              top={0}
+              centre={d.w / 2}
+              reach={d.w / 2 + reach}
+            />
+          </div>
+          <div
+            className="fill"
+            style={{
+              top: grass.top + grass.h,
+              height: 4000,
+              background: GRASS_BOTTOM,
+            }}
+          />
+          <div className="grass">
+            <Tiles
+              src="/art/grass.png"
+              width={grass.w}
+              height={grass.h}
+              top={grass.top}
+              centre={d.w / 2}
+              reach={d.w / 2 + reach}
+            />
+          </div>
+          {props.children}
+        </div>
       </div>
-    </div>
+    </LayoutContext.Provider>
   );
 }
 

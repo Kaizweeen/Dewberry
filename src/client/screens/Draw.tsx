@@ -21,7 +21,30 @@ import {
   usedColors,
 } from '../draw/drawState';
 import type { DrawAction, DrawState } from '../draw/drawState';
-import { Icon, vars } from '../ui';
+import { Icon, useWide, vars } from '../ui';
+
+// Where everything stands, on the phone and on the wide stage. On the wide stage
+// the sheet is bigger (416 against 288) and the controls stand in a column to
+// its right, the line meter and colors under the prompt and the buttons at the
+// sheet's bottom edge.
+const PHONE = {
+  sheet: 288,
+  board: { left: 35, top: 62 },
+  home: { left: 12, top: 12 },
+  prompt: { left: 64, top: 12, width: 299 },
+  meter: { left: 12, top: 372, width: 351 },
+  picker: { left: 12, top: 414, width: 351, height: 104 },
+  buttons: { left: 12, top: 524, width: 351 },
+} as const;
+const DESKTOP = {
+  sheet: 416,
+  board: { left: 12, top: 34 },
+  home: { left: 460, top: 34 },
+  prompt: { left: 512, top: 34, width: 276 },
+  meter: { left: 460, top: 90, width: 328 },
+  picker: { left: 460, top: 134, width: 328, height: 264 },
+  buttons: { left: 460, top: 406, width: 328 },
+} as const;
 
 const NOTICE_MS = 4000;
 const CONFIRM_MS = 4000;
@@ -186,6 +209,7 @@ export function Draw(props: {
     }
   };
 
+  const L = useWide() ? DESKTOP : PHONE;
   const colors = usedColors(state);
   const chip = colors.length > 4 ? 26 : 40;
   const tooLittle = inkUsed(strokes) < MIN_INK;
@@ -195,7 +219,7 @@ export function Draw(props: {
     <>
       <button
         className="artbtn"
-        style={{ left: 12, top: 12, width: 44, height: 44 }}
+        style={{ ...L.home, width: 44, height: 44 }}
         aria-label="Home"
         disabled={sending}
         onClick={props.onHome}
@@ -204,7 +228,7 @@ export function Draw(props: {
       </button>
       <div
         className="px"
-        style={{ left: 64, top: 12, width: 299, height: 44 }}
+        style={{ ...L.prompt, height: 44 }}
         aria-live="polite"
       >
         {notice === null ? (
@@ -217,11 +241,11 @@ export function Draw(props: {
           </p>
         )}
       </div>
-      <div className="px board" style={{ left: 35, top: 62 }}>
+      <div className="px board" style={L.board}>
         <svg
           className="sheet"
           viewBox={`0 0 ${SIZE} ${SIZE}`}
-          style={{ width: 288, height: 288 }}
+          style={{ width: L.sheet, height: L.sheet }}
           role="img"
           aria-label="Your drawing so far"
           onPointerDown={onDown}
@@ -233,10 +257,7 @@ export function Draw(props: {
           <Lines drawing={strokes} />
         </svg>
       </div>
-      <div
-        className="px"
-        style={{ left: 12, top: 372, width: 351, height: 36 }}
-      >
+      <div className="px" style={{ ...L.meter, height: 36 }}>
         <div
           className="t16"
           style={{
@@ -261,10 +282,7 @@ export function Draw(props: {
           <span>{percent}%</span>
         </div>
       </div>
-      <div
-        className="px"
-        style={{ left: 12, top: 414, width: 351, height: 104 }}
-      >
+      <div className="px" style={L.picker}>
         <div
           style={vars({
             display: 'grid',
@@ -300,9 +318,7 @@ export function Draw(props: {
       <div
         style={{
           position: 'absolute',
-          left: 12,
-          top: 524,
-          width: 351,
+          ...L.buttons,
           display: 'grid',
           gridTemplateColumns: '60px 60px 1fr',
           gap: 8,

@@ -6,7 +6,7 @@ import type { DayView, PetView } from '../../shared/types';
 import { ApiFailure, api } from '../api';
 import { drawingsText, homeLine, homeStep, streakText } from '../text';
 import type { HomeStep } from '../text';
-import { Fullness, PetScene } from '../ui';
+import { Fullness, Origin, PetScene, WIDE_SCENE, useWide } from '../ui';
 
 // The nameplate (41 x 11 art pixels) at 4 times, with the edit button beside it.
 // Its interior is x 8 to 156, y 8 to 36, which hides the label baked into the art.
@@ -37,6 +37,13 @@ export function Home(props: {
   onPetChanged: (pet: PetView) => void;
 }) {
   const { view } = props;
+  // On the wide stage the pet's scene stands in the left half and the day's
+  // panel fills the right half. On the phone the panel sits under the scene.
+  const wide = useWide();
+  const at = wide ? WIDE_SCENE : { x: 0, y: 0 };
+  const panel = wide
+    ? { left: 412, top: 52, width: 376, height: 436 }
+    : { left: 12, top: 216, width: 351, height: 368 };
   const step = homeStep(view);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -89,63 +96,65 @@ export function Home(props: {
 
   return (
     <>
-      <PetScene
-        pet={props.pet}
-        fullness={view.fullness}
-        placed={view.placed}
-        name={view.petName}
-        onPet={props.onInventory}
-      />
-      <div className="px" style={BERRIES}>
-        <Fullness full={view.fullness} name={view.petName} size={14} />
-      </div>
-      <img
-        src="/art/nameplate.png"
-        alt=""
-        style={{
-          left: PLATE.left,
-          top: PLATE.top,
-          width: PLATE.width,
-          height: PLATE.height,
-        }}
-      />
-      {editing ? (
-        <>
-          <input
-            className="namebox"
-            style={INNER}
-            aria-label="Pet name"
-            maxLength={PET_NAME_MAX}
-            value={draft}
-            autoFocus
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={onKey}
-          />
-          <button
-            className="px btn t12"
-            style={{ ...EDIT, width: 52 }}
-            onClick={() => void save()}
-          >
-            Save
-          </button>
-        </>
-      ) : (
-        <>
-          <span className="namebox" style={INNER}>
-            {view.petName}
-          </span>
-          <button
-            className="artbtn"
-            style={EDIT}
-            aria-label="Edit pet name"
-            onClick={edit}
-          >
-            <img src="/art/edit-btn.png" alt="" />
-          </button>
-        </>
-      )}
+      <Origin x={at.x} y={at.y}>
+        <PetScene
+          pet={props.pet}
+          fullness={view.fullness}
+          placed={view.placed}
+          name={view.petName}
+          onPet={props.onInventory}
+        />
+        <div className="px" style={BERRIES}>
+          <Fullness full={view.fullness} name={view.petName} size={14} />
+        </div>
+        <img
+          src="/art/nameplate.png"
+          alt=""
+          style={{
+            left: PLATE.left,
+            top: PLATE.top,
+            width: PLATE.width,
+            height: PLATE.height,
+          }}
+        />
+        {editing ? (
+          <>
+            <input
+              className="namebox"
+              style={INNER}
+              aria-label="Pet name"
+              maxLength={PET_NAME_MAX}
+              value={draft}
+              autoFocus
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={onKey}
+            />
+            <button
+              className="px btn t12"
+              style={{ ...EDIT, width: 52 }}
+              onClick={() => void save()}
+            >
+              Save
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="namebox" style={INNER}>
+              {view.petName}
+            </span>
+            <button
+              className="artbtn"
+              style={EDIT}
+              aria-label="Edit pet name"
+              onClick={edit}
+            >
+              <img src="/art/edit-btn.png" alt="" />
+            </button>
+          </>
+        )}
+      </Origin>
       {error !== null && (
         <div className="px" style={{ left: 12, top: 12, width: 227 }}>
           <p className="t12" style={{ padding: '8px 12px' }} role="alert">
@@ -156,10 +165,7 @@ export function Home(props: {
       <div className="px tab t16" style={{ right: 12, top: 12 }}>
         <span>Day {view.day}</span>
       </div>
-      <div
-        className="px"
-        style={{ left: 12, top: 216, width: 351, height: 368 }}
-      >
+      <div className="px" style={panel}>
         <div className="stack" style={{ padding: '20px 16px 16px' }}>
           <h1 className="t32 display">
             {step === 'draw' ? 'Draw' : 'Today:'} {view.prompt}
