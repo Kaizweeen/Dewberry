@@ -6,59 +6,110 @@ import type { DayView, Results } from '../../shared/types';
 import { api, ApiFailure } from '../api';
 import { ordinal } from '../ordinal';
 import { drawingsText, postUrl } from '../text';
-import { Icon, PET_PX, Pet, vars } from '../ui';
+import { Icon, PET_PX, Pet } from '../ui';
 
 type Place = Results['top'][number];
 
-const SLOTS = [
-  // Second place on the left, first in the middle and larger, third on the right.
-  { rank: 2, art: 64, pu: 4 },
-  { rank: 1, art: 88, pu: 6 },
-  { rank: 3, art: 64, pu: 4 },
+// The owner's podium, in art pixels at K screen pixels each. The stage is 96
+// wide, shown 60 tall (the pillars run off its bottom edge). The pillars are 82
+// wide, centered on the stage. `cx` is the middle of a pillar's top and `top` its
+// top edge. Each pillar has room above it, under its floating number, for a
+// drawing `card` art pixels wide. Second place stands on the left, first in the
+// middle and highest, third on the right.
+const K = 3;
+const STAGE = { w: 96, h: 60, inset: 7 };
+const PILLARS = [
+  { rank: 2, cx: 12, top: 41, card: 16 },
+  { rank: 1, cx: 40, top: 27, card: 20 },
+  { rank: 3, cx: 69, top: 49, card: 16 },
 ] as const;
 
 function Podium(props: { top: Place[] }) {
+  const mid = (cx: number) => (STAGE.inset + cx) * K;
   return (
-    <ul
-      className="podium t16"
-      style={{
-        marginTop: 14,
-        gap: 8,
-        display: 'grid',
-        alignItems: 'end',
-        gridTemplateColumns: '1fr 1.25fr 1fr',
-      }}
-    >
-      {SLOTS.map((slot) => {
-        const place = props.top.find((p) => p.rank === slot.rank);
-        if (place === undefined) return <li key={slot.rank}></li>;
-        const name = ordinal(slot.rank);
-        return (
-          <li key={slot.rank}>
-            <span className="t24">{name}</span>
-            <div
-              className="pocket"
-              style={vars({ '--pu': `${slot.pu}px`, margin: slot.pu })}
+    <div style={{ marginTop: 12 }}>
+      <div
+        style={{
+          position: 'relative',
+          width: STAGE.w * K,
+          height: STAGE.h * K,
+          margin: '0 auto',
+          overflow: 'hidden',
+          imageRendering: 'pixelated',
+        }}
+      >
+        <img
+          src="/art/podium-stage.png"
+          alt=""
+          style={{ left: 0, top: 0, width: STAGE.w * K, height: 73 * K }}
+        />
+        <img
+          src="/art/podium-pillars.png"
+          alt=""
+          style={{
+            left: STAGE.inset * K,
+            top: 0,
+            width: 82 * K,
+            height: 76 * K,
+          }}
+        />
+        {PILLARS.map((p) => {
+          const place = props.top.find((t) => t.rank === p.rank);
+          if (place === undefined) return null;
+          const size = p.card * K;
+          return (
+            <span
+              key={p.rank}
+              className="art card framed paper"
+              style={{
+                left: mid(p.cx) - size / 2,
+                top: p.top * K - size + K,
+                width: size,
+                height: size,
+              }}
             >
-              <span
-                className="art paper"
-                style={{ width: slot.art, height: slot.art }}
-              >
-                <DrawingArt
-                  entry={place.entry}
-                  label={`${name} place drawing`}
-                />
-              </span>
-            </div>
-            <span className="who">{place.username}</span>
-            <span className="count">
-              <Icon name="heart" width={21} height={18} />
-              {place.hearts}
+              <DrawingArt
+                entry={place.entry}
+                label={`${ordinal(p.rank)} place drawing`}
+              />
             </span>
-          </li>
-        );
-      })}
-    </ul>
+          );
+        })}
+      </div>
+      <ul
+        className="t12"
+        style={{
+          position: 'relative',
+          width: STAGE.w * K,
+          height: 34,
+          margin: '6px auto 0',
+        }}
+      >
+        {PILLARS.map((p) => {
+          const place = props.top.find((t) => t.rank === p.rank);
+          if (place === undefined) return null;
+          return (
+            <li
+              key={p.rank}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: mid(p.cx) - 40,
+                width: 80,
+                display: 'grid',
+                justifyItems: 'center',
+              }}
+            >
+              <span className="who clip">{place.username}</span>
+              <span className="count">
+                <Icon name="heart" width={14} height={12} />
+                {place.hearts}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

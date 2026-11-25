@@ -14,6 +14,11 @@ export function requestExpandedMode(_event, entry) {
   window.location.assign('/src/client/game.html');
 }
 
+export function exitExpandedMode(_event) {
+  window.__exited = true;
+  console.info('exitExpandedMode');
+}
+
 export function showToast(message) {
   console.info('showToast', message);
 }

@@ -590,6 +590,21 @@ img.starter {
 .sprite.asleep {
   background-position-x: calc(-12 * var(--fw));
 }
+/* Mouth wide open, held still. Frames 2 to 4 are the big mouth on every pet. */
+.sprite.open {
+  background-position-x: calc(-3 * var(--fw));
+}
+/* Where a dragged food can be dropped on the pet. */
+.drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: var(--u) dashed transparent;
+  outline-offset: calc(-1 * var(--u));
+}
+.drop.on {
+  outline-color: var(--ink);
+}
 /* Eating, played once after a feed: 130ms a frame. */
 .sprite.eating {
   animation: fed 1820ms steps(14) 1;
@@ -829,6 +844,11 @@ img.starter {
   inset: 0;
   overflow: hidden;
   background: #86dfff;
+  /* The Settings button is a pixel button, which takes its look from these. */
+  font-family: 'Silkscreen', monospace;
+  text-transform: uppercase;
+  color: var(--ink);
+  --u: 4px;
 }
 .menu img {
   max-width: none;

@@ -228,11 +228,12 @@ export const PET_PX = {
 export const STRIP_FRAMES = 14;
 export const STRIP_SUB = 2;
 
-export type PetMood = 'idle' | 'asleep' | 'eating' | 'still';
+export type PetMood = 'idle' | 'asleep' | 'eating' | 'still' | 'open';
 
 /**
  * A pet at `scale` screen pixels per art pixel. idle blinks, asleep keeps its
- * eyes shut, eating plays the eating timeline once, still does nothing.
+ * eyes shut, eating plays the eating timeline once, still does nothing, open
+ * holds its mouth wide open (food is coming).
  * Without a label it is decoration.
  */
 export function Pet(props: {
